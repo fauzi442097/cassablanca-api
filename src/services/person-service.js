@@ -3,6 +3,7 @@ const { Sequelize } = require("sequelize");
 
 const Person = require("../models/person.js")(db, Sequelize.DataTypes);
 
+
 const getPersons = async () => {
   const data = await Person.findAll();
   return data;
