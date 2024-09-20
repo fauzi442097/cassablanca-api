@@ -1,15 +1,16 @@
-require("dotenv").config();
 const { Sequelize } = require("sequelize");
 const logger = require("./logging");
-const config = require("../config/config.json");
+const config = require("./config");
+
+const env = process.env.NODE_ENV || "development";
 
 const db = new Sequelize(
-  config.development.database,
-  config.development.username,
-  config.development.password,
+  config[env].database,
+  config[env].username,
+  config[env].password,
   {
-    host: config.development.host,
-    port: config.development.port,
+    host: config[env].host,
+    port: config[env].port,
     dialect: "postgres",
     logging: (msg) => logger.info(msg), // Use Winston to log Sequelize messages
   }

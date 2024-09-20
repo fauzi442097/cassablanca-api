@@ -1,7 +1,6 @@
 const express = require("express");
 
 const personController = require("../controllers/person-controller");
-const { route } = require(".");
 
 const router = express.Router();
 router.get("/", personController.index);

@@ -7,6 +7,7 @@ const getPersons = async () => {
   const data = await Person.findAll();
   return data;
 };
+
 const getPersonById = async (personId) => {
   const data = await Person.findAll({
     where: {

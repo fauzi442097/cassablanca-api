@@ -1,5 +1,6 @@
 const logger = require("../config/logging");
 const { getPersons, getPersonById } = require("../services/person-service");
+const Response = require("../utils/response-handler");
 
 const index = async (req, res) => {
   try {
@@ -19,11 +20,7 @@ const index = async (req, res) => {
       },
     });
 
-    res.json({
-      rc: 200,
-      rm: "Sukses",
-      data: persons,
-    });
+    return Response.Success(res, persons);
   } catch (err) {
     res.status(500).json({
       rc: 500,
