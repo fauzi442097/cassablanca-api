@@ -1,0 +1,6 @@
+{"timestamp":"20-09-2024 08:21:26","level":"INFO","method":"POST","url":"/api/login","statusCode":200,"responseTime":"2ms","userAgent":"PostmanRuntime/7.42.0","requestBody":"{\"email\":\"1212\"}"}
+{"timestamp":"20-09-2024 08:21:27","level":"INFO","method":"POST","url":"/api/login","statusCode":200,"responseTime":"4ms","userAgent":"PostmanRuntime/7.42.0","requestBody":"{\"email\":\"1212\"}"}
+{"timestamp":"20-09-2024 08:23:36","level":"INFO","method":"POST","url":"/api/login","statusCode":200,"responseTime":"5ms","userAgent":"PostmanRuntime/7.42.0","requestBody":"{\"email\":\"1212\"}"}
+{"timestamp":"20-09-2024 08:24:01","level":"INFO","method":"POST","url":"/api/login","statusCode":400,"responseTime":"4ms","userAgent":"PostmanRuntime/7.42.0","requestBody":"{\"email\":\"\"}"}
+{"timestamp":"20-09-2024 08:24:26","level":"INFO","method":"POST","url":"/api/login","statusCode":400,"responseTime":"9ms","userAgent":"PostmanRuntime/7.42.0","requestBody":{"email":""}}
+{"timestamp":"20-09-2024 08:24:43","level":"INFO","method":"POST","url":"/api/login","statusCode":200,"responseTime":"5ms","userAgent":"PostmanRuntime/7.42.0","requestBody":{"email":"fauzi442097@gmai.com"}}

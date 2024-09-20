@@ -12,7 +12,7 @@ const db = new Sequelize(
     host: config[env].host,
     port: config[env].port,
     dialect: "postgres",
-    logging: (msg) => logger.info(msg), // Use Winston to log Sequelize messages
+    // logging: (msg) => logger.info(msg), // Use Winston to log Sequelize messages
   }
 );
 

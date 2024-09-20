@@ -20,7 +20,8 @@
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.3",
     "sequelize-auto": "^0.8.8",
-    "winston": "^3.14.2"
+    "winston": "^3.14.2",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

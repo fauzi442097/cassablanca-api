@@ -27,6 +27,17 @@ const validationErrorResponse = (res, errors, statusCode = 400) => {
   });
 };
 
+const unauthorizedResponse = (res, message) => {
+  return res.status(401).json({
+    message: message || "Unauthorized",
+  });
+};
+const forbiddenResponse = (res, message) => {
+  return res.status(403).json({
+    message: message || "Forbidden",
+  });
+};
+
 const notFoundResponse = (res, message = "Resource not found") => {
   return res.status(404).json({
     message: message,
@@ -38,6 +49,8 @@ const Response = {
   Error: errorResponse,
   NotFound: notFoundResponse,
   BadRequest: validationErrorResponse,
+  Unauthorized: unauthorizedResponse,
+  Forbidden: forbiddenResponse,
 };
 
 module.exports = Response;

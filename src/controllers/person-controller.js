@@ -14,10 +14,6 @@ const index = async (req, res) => {
         query: req.query,
         header: req.headers,
       },
-      response: {
-        rc: 200,
-        rm: "Sukses",
-      },
     });
 
     return Response.Success(res, persons);
