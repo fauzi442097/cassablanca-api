@@ -3,9 +3,15 @@ const Response = require("../utils/response-handler");
 
 // middlewares/errorHandler.js
 const errorHandler = (err, req, res, next) => {
-  // Log error detail ke file
-  const statusCode = res.statusCode !== 200 ? res.statusCode : 500;
+  const statusCode = err.statusCode || 500;
 
+  console.log(err);
+
+  if (statusCode == 400) {
+    return Response.BadRequest(res, err.message);
+  }
+
+  // Log error detail ke file
   logger.error({
     message: err.message,
     statusCode: statusCode,
@@ -14,7 +20,7 @@ const errorHandler = (err, req, res, next) => {
     stack: err.stack,
   });
 
-  return Response.Error(res, err.message);
+  return Response.Error(res, err.stack);
 };
 
 module.exports = errorHandler;

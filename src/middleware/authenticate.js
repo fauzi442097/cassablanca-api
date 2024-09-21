@@ -1,7 +1,6 @@
 const Response = require("../utils/response-handler");
 const jwt = require("jsonwebtoken");
 
-
 const checkToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -14,7 +13,6 @@ const checkToken = (req, res, next) => {
     return Response.Unauthorized(res, "Unauthorized. Token is missing");
   }
 
-  
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
       // Jika token telah kedaluwarsa atau tidak valid
@@ -31,7 +29,12 @@ const checkToken = (req, res, next) => {
 };
 
 const authenticateJWT = (req, res, next) => {
-  if (req.path === "/api/login" || req.path === "/api/register") {
+  const routePublic = [
+    "/api/request-otp",
+    "/api/request-otp",
+    "/api/verify-otp",
+  ];
+  if (routePublic.includes(req.path)) {
     next(); // Skip authentication for login and register routes
   } else {
     return checkToken(req, res, next); // Apply authentication for other routes

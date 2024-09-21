@@ -1,29 +1,12 @@
 const logger = require("../config/logging");
 const { getPersons, getPersonById } = require("../services/person-service");
+const { tryCatch } = require("../utils/helper");
 const Response = require("../utils/response-handler");
 
-const index = async (req, res) => {
-  try {
-    const persons = await getPersons();
-    logger.info("Success retrieving data customers", {
-      request: {
-        method: req.method,
-        url: req.path,
-        ip: req.ip,
-        body: req.body,
-        query: req.query,
-        header: req.headers,
-      },
-    });
-
-    return Response.Success(res, persons);
-  } catch (err) {
-    res.status(500).json({
-      rc: 500,
-      rm: err.message,
-    });
-  }
-};
+const index = tryCatch(async (req, res) => {
+  const persons = await getPersons();
+  return Response.Success(res, persons);
+});
 
 const getById = async (req, res) => {
   try {

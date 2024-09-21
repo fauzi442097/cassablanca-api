@@ -4,10 +4,16 @@ const successResponse = (
   message = "success",
   statusCode = 200
 ) => {
-  return res.status(statusCode).json({
-    message,
-    data,
-  });
+  if (data) {
+    return res.status(statusCode).json({
+      message,
+      data,
+    });
+  } else {
+    return res.status(statusCode).json({
+      message,
+    });
+  }
 };
 
 const errorResponse = (res, error = null, statusCode = 500) => {
@@ -20,9 +26,14 @@ const errorResponse = (res, error = null, statusCode = 500) => {
   });
 };
 
-const validationErrorResponse = (res, errors, statusCode = 400) => {
+const validationErrorResponse = (
+  res,
+  message = "Bad Request",
+  errors,
+  statusCode = 400
+) => {
   return res.status(statusCode).json({
-    message: "Bad Request",
+    message,
     errors,
   });
 };
