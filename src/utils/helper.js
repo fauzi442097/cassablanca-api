@@ -1,7 +1,14 @@
 const db = require("../config/database");
 
-const generateOtp = () => {
-  return Math.floor(100000 + Math.random() * 900000); // Generates a 6-digit OTP
+const generateOtp = (length = 6) => {
+  let otp = "";
+  const digits = "0123456789";
+
+  for (let i = 0; i < length; i++) {
+    otp += digits[Math.floor(Math.random() * digits.length)];
+  }
+
+  return otp;
 };
 
 const tryCatch = (fn) => async (req, res, next) => {

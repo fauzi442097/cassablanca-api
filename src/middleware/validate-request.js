@@ -1,29 +1,30 @@
 const Response = require("../utils/response-handler");
+const { ZodError } = require("zod");
 
 const validateRequest = (schema) => {
   return (req, res, next) => {
-    const { error } = schema.validate(req.body, { abortEarly: false });
+    try {
+      schema.parse(req.body);
+      next();
+    } catch (e) {
+      if (e instanceof ZodError) {
+        const validationErrors = e.errors.reduce((acc, curr) => {
+          const key = curr.path.join(".");
+          const errorMessage = curr.message;
 
-    if (error) {
-      const validationErrors = error.details.reduce((acc, curr) => {
-        const key = curr.path.join(".");
+          if (!acc[key]) {
+            acc[key] = [];
+          }
 
-        // remove property name on message
-        const errorMessage = curr.message.replace(/["']?[^"']+["']? /, "");
+          acc[key].push(errorMessage);
+          return acc;
+        }, {});
 
-        if (!acc[key]) {
-          acc[key] = [];
-        }
-
-        acc[key].push(errorMessage);
-
-        return acc;
-      }, {});
-
-      return Response.BadRequest(res, "Bad Request", validationErrors);
+        return Response.BadRequest(res, "Invalid data", validationErrors);
+      } else {
+        return Response.Error(res);
+      }
     }
-
-    next();
   };
 };
 
