@@ -4,7 +4,8 @@ const { tryCatch } = require("../utils/helper");
 const Response = require("../utils/response-handler");
 
 const index = tryCatch(async (req, res) => {
-  const persons = await getPersons();
+  const { page, size, search } = req.query;
+  const persons = await getPersons(parseInt(page), parseInt(size), search);
   return Response.Success(res, persons);
 });
 
