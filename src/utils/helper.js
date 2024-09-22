@@ -35,9 +35,18 @@ const isNullOrUndefined = (value) => {
   return value === null || value === undefined;
 };
 
+const toSnakeCase = (str) => {
+  return str
+    .replace(/([a-z])([A-Z])/g, "$1_$2") // Insert underscore between camelCase words
+    .replace(/\s+/g, "_") // Replace spaces with underscores
+    .replace(/-+/g, "_") // Replace dashes with underscores
+    .toLowerCase(); // Convert the entire string to lowercase
+};
+
 module.exports = {
   generateOtp,
   tryCatch,
   transactionWrapper,
   isNullOrUndefined,
+  toSnakeCase,
 };

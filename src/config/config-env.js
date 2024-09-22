@@ -1,8 +1,7 @@
 const { parseEnv, parseEnvNumber } = require("../utils/env");
-
 require("dotenv").config();
 
-module.exports = {
+const configEnv = {
   development: {
     username: parseEnv("DB_USERNAME", "postgres"),
     password: parseEnv("DB_PASSWORD", "postgres"),
@@ -28,3 +27,5 @@ module.exports = {
     dialect: "postgres",
   },
 };
+
+module.exports = configEnv;

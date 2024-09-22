@@ -26,7 +26,7 @@ module.exports = function(sequelize, DataTypes) {
     email: {
       type: DataTypes.STRING(150),
       allowNull: true,
-      unique: "unique_email"
+      unique: "person_email_key"
     },
     country_of_birth: {
       type: DataTypes.STRING(50),
@@ -38,6 +38,13 @@ module.exports = function(sequelize, DataTypes) {
     schema: 'public',
     timestamps: false,
     indexes: [
+      {
+        name: "person_email_key",
+        unique: true,
+        fields: [
+          { name: "email" },
+        ]
+      },
       {
         name: "person_pkey",
         unique: true,

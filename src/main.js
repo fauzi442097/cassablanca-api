@@ -10,6 +10,7 @@ const cookieParser = require("cookie-parser");
 const { parseEnvNumber } = require("./utils/env.js");
 const authenticateJWT = require("./middleware/authenticate.js");
 const logActivities = require("./middleware/log-activity.js");
+const db = require("./config/database.js");
 
 require("dotenv").config();
 
@@ -20,8 +21,6 @@ const corsOptions = {
   // exposedHeaders: ["Custom-Header"],
   optionsSuccessStatus: 200,
 };
-
-
 
 app.use(cors(corsOptions));
 app.use(express.json());
@@ -44,6 +43,16 @@ app.use((req, res, next) => Response.NotFound(res));
 app.use(errorHandler);
 
 const port = parseEnvNumber("APP_PORT", 3000);
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+
+const startServer = async () => {
+  try {
+    await db.sync();
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+startServer();

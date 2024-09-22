@@ -11,6 +11,10 @@ const errorHandler = (err, req, res, next) => {
     return Response.BadRequest(res, err.message);
   }
 
+  if (statusCode == 401) {
+    return Response.Unauthorized(res, err.message);
+  }
+
   // Log error detail ke file
   logger.error({
     message: err.message,
