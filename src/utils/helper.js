@@ -1,4 +1,5 @@
 const db = require("../config/database");
+const { asyncLocalStorage } = require("../middleware/log-activity");
 
 const generateOtp = (length = 6) => {
   let otp = "";
@@ -19,10 +20,10 @@ const tryCatch = (fn) => async (req, res, next) => {
   }
 };
 
-const transactionWrapper = async (transactionalFunction) => {
+const withTransaction = async (callback) => {
   const transaction = await db.transaction();
   try {
-    const result = await transactionalFunction(transaction);
+    const result = await callback(transaction);
     await transaction.commit();
     return result;
   } catch (error) {
@@ -43,10 +44,15 @@ const toSnakeCase = (str) => {
     .toLowerCase(); // Convert the entire string to lowercase
 };
 
+const getRequestObject = () => {
+  return asyncLocalStorage.getStore().get("req");
+};
+
 module.exports = {
   generateOtp,
   tryCatch,
-  transactionWrapper,
+  withTransaction,
   isNullOrUndefined,
   toSnakeCase,
+  getRequestObject,
 };

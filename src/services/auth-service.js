@@ -1,20 +1,16 @@
 const transporter = require("../config/mail");
-const { generateOtp } = require("../utils/helper");
+const { generateOtp, withTransaction } = require("../utils/helper");
 const jwt = require("jsonwebtoken");
 const ResponseError = require("../utils/response-error");
-const { Sequelize } = require("sequelize");
 const db = require("../config/database");
+const initModels = require("../models/init-models");
+const { users } = initModels(db);
+const auditService = require("../services/audit-service");
 
-const UserModel = require("../models/users")(db, Sequelize.DataTypes);
+const userRepository = require("../repositories/user-repository");
 
 const requestOTPService = async (email) => {
-  const user = await UserModel.findOne({
-    attributes: ["id", "email", "fullname"],
-    where: {
-      email: email,
-    },
-  });
-
+  const user = await userRepository.getDataByEmail(email);
   if (!user) throw new ResponseError("Email tidak terdaftar dalam sistem", 401);
 
   const otp = generateOtp();
@@ -22,24 +18,60 @@ const requestOTPService = async (email) => {
   // send mail with defined transport object
   await sendEmailOTP(otp, email);
 
-  const currentDate = new Date(); // Current date and time
-  const newDate = new Date(currentDate.getTime() + 15 * 60000);
+  // Send the OTP email with sender email
+  //   await sendOtpEmail(email, otp);
 
-  // Update OTP to user
-  await UserModel.update(
+  const currentDate = new Date(); // Current date and time
+  const expiredOTP = new Date(currentDate.getTime() + 15 * 60000);
+
+  // Log Audit
+  const dataAudit = {
+    user_id: user.id,
+    event: "Request OTP",
+    model_id: user.id,
+    model_name: users.tableName,
+    old_values: user,
+  };
+
+  return withTransaction(async (transaction) => {
+    // Update OTP to user
+    await userRepository.updateOTPByUserId(user.id, otp, expiredOTP, {
+      transaction,
+    });
+
+    await auditService.store(dataAudit, transaction);
+  });
+};
+
+const verifyOTPService = async (email, otp) => {
+  const user = await userRepository.getDataByEmail(email);
+  if (!user || user.otp != otp)
+    throw new ResponseError("Email atau OTP salah", 401);
+
+  const currentData = new Date();
+  if (currentData > user.expired_otp) {
+    throw new ResponseError("OTP Expired", 401);
+  }
+
+  const token = jwt.sign(
+    { email, id: user.id, full_name: user.fullname },
+    process.env.JWT_SECRET,
     {
-      otp: otp,
-      expired_otp: newDate,
-    },
-    {
-      where: {
-        id: user.id,
-      },
+      expiresIn: "1h", // 1 Hour
     }
   );
 
-  // Send the OTP email
-  //   await sendOtpEmail(email, otp);
+  // Log Audit
+  const dataAudit = {
+    user_id: user.id,
+    event: "Login",
+    model_id: user.id,
+    model_name: users.tableName,
+    old_values: user,
+  };
+  await auditService.store(dataAudit);
+
+  return token;
 };
 
 const sendEmailOTP = async (otp, email) => {
@@ -55,30 +87,6 @@ const sendEmailOTP = async (otp, email) => {
       <p> Jika Anda tidak melakukan permintaan ini, silakan abaikan email ini.</p>
       <p>Terima kasih</p>,`, // html body
   });
-};
-
-const verifyOTPService = async (email, otp) => {
-  const user = await UserModel.findOne({
-    where: {
-      email: email,
-    },
-  });
-
-  console.log(user.expired_otp);
-
-  if (!user || user.otp != otp)
-    throw new ResponseError("Email atau OTP salah", 401);
-
-  const currentData = new Date();
-  if (currentData > user.expired_otp) {
-    throw new ResponseError("OTP Expired", 401);
-  }
-
-  const token = jwt.sign({ email }, process.env.JWT_SECRET, {
-    expiresIn: "1h", // 1 Hour
-  });
-
-  return token;
 };
 
 module.exports = {

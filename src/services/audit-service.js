@@ -1,0 +1,61 @@
+const db = require("../config/database");
+const initModels = require("../models/init-models");
+const { getRequestObject } = require("../utils/helper");
+const ResponseError = require("../utils/response-error");
+
+const { audits } = initModels(db);
+const getAll = async (page, size, search) => {
+  const offset = (page - 1) * size;
+  const whereCondition = search
+    ? {
+        [Op.or]: [{ event: { [Op.iLike]: `%${search}%` } }],
+      }
+    : {};
+
+  const result = await audits.findAndCountAll({
+    where: whereCondition,
+    limit: size,
+    offset: offset,
+  });
+
+  const dataPagination = {
+    items: result.rows,
+    pagination: {
+      total_records: result.count,
+      total_pages: Math.ceil(result.count / size),
+      current_page: page,
+    },
+  };
+
+  return dataPagination;
+};
+
+const getDataById = async (auditId) => {
+  const data = await audits.findByPk(auditId);
+  if (!data) throw new ResponseError("Data tidak ditemukan", 404);
+  return data;
+};
+
+const store = async (data, transaction) => {
+  const req = getRequestObject();
+  const dataAudit = {
+    user_id: data.user_id,
+    event: data.event,
+    auditable_id: data.model_id,
+    auditable_type: data.model_name,
+    old_values: JSON.stringify(data.old_values),
+    new_values: data.new_values ? JSON.stringify(data.new_values) : null,
+    url: req.originalUrl,
+    ip_address: req.ip,
+    user_agent: req.headers["user-agent"],
+  };
+
+  const withTransaction = transaction ? { transaction } : {};
+  await audits.create(dataAudit, withTransaction);
+};
+
+module.exports = {
+  getAll,
+  getDataById,
+  store,
+};

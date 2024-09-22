@@ -9,7 +9,7 @@ const Response = require("./utils/response-handler.js");
 const cookieParser = require("cookie-parser");
 const { parseEnvNumber } = require("./utils/env.js");
 const authenticateJWT = require("./middleware/authenticate.js");
-const logActivities = require("./middleware/log-activity.js");
+const { logActivities } = require("./middleware/log-activity.js");
 const db = require("./config/database.js");
 
 require("dotenv").config();

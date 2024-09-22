@@ -1,4 +1,7 @@
 const logger = require("../config/logging");
+const { AsyncLocalStorage } = require("async_hooks");
+
+const asyncLocalStorage = new AsyncLocalStorage();
 
 const logActivities = (req, res, next) => {
   const startTime = Date.now();
@@ -18,7 +21,13 @@ const logActivities = (req, res, next) => {
     logger.info(bodyLogger);
   });
 
-  next();
+  asyncLocalStorage.run(new Map(), () => {
+    asyncLocalStorage.getStore().set("req", req); // set request object to global state
+    next();
+  });
 };
 
-module.exports = logActivities;
+module.exports = {
+  logActivities,
+  asyncLocalStorage,
+};

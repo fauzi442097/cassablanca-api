@@ -5,10 +5,12 @@ const Response = require("../utils/response-handler");
 const errorHandler = (err, req, res, next) => {
   const statusCode = err.statusCode || 500;
 
-  console.log(err);
-
   if (statusCode == 400) {
     return Response.BadRequest(res, err.message);
+  }
+
+  if (statusCode == 404) {
+    return Response.NotFound(res, err.message);
   }
 
   if (statusCode == 401) {
