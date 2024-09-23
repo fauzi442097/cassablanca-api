@@ -2,6 +2,7 @@ const db = require("../config/database");
 const initModels = require("../models/init-models");
 const { getRequestObject } = require("../utils/helper");
 const ResponseError = require("../utils/response-error");
+const jwt = require("jsonwebtoken");
 
 const { audits } = initModels(db);
 const getAll = async (page, size, search) => {
@@ -38,8 +39,18 @@ const getDataById = async (auditId) => {
 
 const store = async (data, transaction) => {
   const req = getRequestObject();
+
+  let userId = data.user_id;
+  const authHeader = req.headers.authorization;
+  if (authHeader) {
+    const token = authHeader.split(" ")[1];
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      userId = user.id;
+    });
+  }
+
   const dataAudit = {
-    user_id: data.user_id,
+    user_id: userId,
     event: data.event,
     auditable_id: data.model_id,
     auditable_type: data.model_name,

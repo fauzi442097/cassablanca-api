@@ -5,6 +5,7 @@ const ResponseError = require("../utils/response-error.js");
 const { ranking, ranking_req, reff_ranking_req_type } = initModels(db);
 
 const rankingRepository = require("../repositories/ranking-repository.js");
+const rankingReqRepository = require("../repositories/ranking-req-repository.js");
 const auditService = require("../services/audit-service.js");
 
 const getRangkings = async () => {
@@ -24,6 +25,55 @@ const getRangkings = async () => {
     ],
   });
   return data;
+};
+
+const updateRanking = async (rankingId, data) => {
+  const dataRanking = await rankingRepository.getDataById(rankingId);
+  if (!dataRanking) throw new ResponseError("Data tidak ditemukan", 404);
+
+  // Log Audit
+  let dataAuditRanking = {
+    event: "Update level",
+    model_id: dataRanking.id,
+    model_name: ranking.tableName,
+    old_values: dataRanking,
+  };
+
+  return withTransaction(async (transaction) => {
+    const newDataRanking = await rankingRepository.updateRankingName(
+      rankingId,
+      data.ranking_nm,
+      transaction
+    );
+
+    dataAuditRanking = { ...dataAuditRanking, new_values: newDataRanking };
+    await auditService.store(dataAuditRanking, transaction);
+
+    for (const item of data.ranking_req_type) {
+      const oldRankingReq =
+        await rankingReqRepository.getDataByRankingIdAndReqType(
+          rankingId,
+          item.id
+        );
+
+      const newRankingReq =
+        await rankingReqRepository.updateByRankingIdAndReqType(
+          rankingId,
+          item,
+          transaction
+        );
+
+      // Log Audit
+      let auditReqRanking = {
+        event: `Update persyaratan untuk level ${dataRanking.ranking_nm}`,
+        model_id: dataRanking.id,
+        model_name: ranking_req.tableName,
+        old_values: oldRankingReq,
+        new_values: newRankingReq,
+      };
+      await auditService.store(auditReqRanking, transaction);
+    }
+  });
 };
 
 const getRangkingById = async (rankingId) => {
@@ -67,7 +117,6 @@ const updateRankingBonus = async (data, rankingId) => {
 
     // Log Audit
     const dataAudit = {
-      user_id: null,
       event: "Update bonus peringkat",
       model_id: rankingId,
       model_name: ranking.tableName,
@@ -87,6 +136,7 @@ const getRankingBonusById = async (rankingId) => {
 
 module.exports = {
   getRangkings,
+  updateRanking,
   getRangkingById,
   getRankingBonuses,
   updateRankingBonus,

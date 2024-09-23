@@ -33,6 +33,7 @@ const authenticateJWT = (req, res, next) => {
     "/api/request-otp",
     "/api/request-otp",
     "/api/verify-otp",
+    "/api/sign-up",
   ];
   if (routePublic.includes(req.path)) {
     next(); // Skip authentication for login and register routes

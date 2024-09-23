@@ -23,8 +23,28 @@ const updateBonusRankingById = async (rankingId, data, options = undefined) => {
   });
 };
 
+const updateRankingName = async (
+  rankingId,
+  rankingName,
+  options = undefined
+) => {
+  return await ranking.update(
+    {
+      ranking_nm: rankingName,
+    },
+    {
+      where: {
+        id: rankingId,
+      },
+      returning: true,
+      options,
+    }
+  );
+};
+
 module.exports = {
   updateBonusRankingById,
   getAll,
   getDataById,
+  updateRankingName,
 };

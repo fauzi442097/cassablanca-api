@@ -1,13 +1,19 @@
 const transporter = require("../config/mail");
-const { generateOtp, withTransaction } = require("../utils/helper");
+const {
+  generateOtp,
+  withTransaction,
+  generateReferralCode,
+} = require("../utils/helper");
 const jwt = require("jsonwebtoken");
 const ResponseError = require("../utils/response-error");
 const db = require("../config/database");
 const initModels = require("../models/init-models");
-const { users } = initModels(db);
+const { users, member } = initModels(db);
 const auditService = require("../services/audit-service");
 
 const userRepository = require("../repositories/user-repository");
+const memberRepository = require("../repositories/member-repository");
+const { ROLE, STATUS_USER } = require("../utils/ref-value");
 
 const requestOTPService = async (email) => {
   const user = await userRepository.getDataByEmail(email);
@@ -74,6 +80,54 @@ const verifyOTPService = async (email, otp) => {
   return token;
 };
 
+const registerMemberByReferalCode = async (data) => {
+  const memberByEmail = await memberRepository.getDataByEmail(data.email);
+  if (memberByEmail)
+    throw new ResponseError(
+      "Email sudah digunakan. Silakan gunakan email lain",
+      400
+    );
+
+  const memberByRefCode = await memberRepository.getDataByReferalCode(
+    data.referal_code
+  );
+  if (!memberByRefCode)
+    throw new ResponseError("Referral code yang anda masukan salah", 400);
+
+  const referralCode = generateReferralCode();
+
+  const otp = generateOtp();
+  const currentDate = new Date();
+  const expiredOTP = new Date(currentDate.getTime() + 15 * 60000); // 15 menit
+
+  const newMemberData = {
+    email: data.email,
+    fullname: data.full_name,
+    role_id: ROLE.MEMBER,
+    referal_code: referralCode,
+    user_status_id: STATUS_USER.INACTIVE,
+    otp: otp,
+    expired_otp: expiredOTP,
+  };
+
+  return withTransaction(async (transaction) => {
+    await sendEmailOTP(otp, data.email);
+
+    const newMember = await memberRepository.store(newMemberData, transaction);
+
+    // Log Audit
+    let dataAudit = {
+      user_id: null,
+      event: "Registrasi member dengan referral code",
+      model_id: newMember.id,
+      model_name: member.tableName,
+      new_values: newMember,
+    };
+
+    await auditService.store(dataAudit);
+  });
+};
+
 const sendEmailOTP = async (otp, email) => {
   await transporter.sendMail({
     from: "Anonymous <jayden.gibson29@ethereal.email>", // sender address
@@ -92,4 +146,5 @@ const sendEmailOTP = async (otp, email) => {
 module.exports = {
   requestOTPService,
   verifyOTPService,
+  registerMemberByReferalCode,
 };

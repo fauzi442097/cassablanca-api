@@ -48,6 +48,21 @@ const getRequestObject = () => {
   return asyncLocalStorage.getStore().get("req");
 };
 
+const generateReferralCode = (length = 8) => {
+  // Define the characters to use in the referral code
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let referralCode = "";
+
+  // Generate the code with the specified length
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    referralCode += characters[randomIndex];
+  }
+
+  return referralCode;
+};
+
 module.exports = {
   generateOtp,
   tryCatch,
@@ -55,4 +70,5 @@ module.exports = {
   isNullOrUndefined,
   toSnakeCase,
   getRequestObject,
+  generateReferralCode,
 };

@@ -5,6 +5,7 @@ const validateRequest = require("../middleware/validate-request");
 const {
   requestOTPValidation,
   requestVerifyOtpValidation,
+  signUpSchema,
 } = require("../validation/user-validation");
 
 const router = exporess.Router();
@@ -18,5 +19,6 @@ router.post(
   validateRequest(requestVerifyOtpValidation),
   authController.verifyOTP
 );
+router.post("/sign-up", validateRequest(signUpSchema), authController.signUp);
 
 module.exports = router;
