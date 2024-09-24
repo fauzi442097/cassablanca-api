@@ -12,10 +12,6 @@ module.exports = function (sequelize, DataTypes) {
       user_id: {
         type: DataTypes.BIGINT,
         allowNull: true,
-        references: {
-          model: "users",
-          key: "id",
-        },
       },
       event: {
         type: DataTypes.TEXT,
@@ -26,7 +22,7 @@ module.exports = function (sequelize, DataTypes) {
         allowNull: false,
       },
       auditable_id: {
-        type: DataTypes.TEXT,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       old_values: {
@@ -58,9 +54,7 @@ module.exports = function (sequelize, DataTypes) {
       sequelize,
       tableName: "audits",
       schema: "public",
-      timestamps: true,
-      createdAt: "created_at",
-      updatedAt: "updated_at",
+      timestamps: false,
       indexes: [
         {
           name: "audits_pkey",

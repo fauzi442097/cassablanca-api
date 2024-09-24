@@ -1,15 +1,19 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('wallet', {
+  return sequelize.define('withdrawal', {
     id: {
       autoIncrement: true,
       type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true
     },
+    user_id: {
+      type: DataTypes.BIGINT,
+      allowNull: true
+    },
     coin_id: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: 'coin',
         key: 'id'
@@ -17,9 +21,13 @@ module.exports = function(sequelize, DataTypes) {
     },
     address: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: false
     },
-    user_id: {
+    amount: {
+      type: DataTypes.DECIMAL,
+      allowNull: false
+    },
+    user_id_admin: {
       type: DataTypes.BIGINT,
       allowNull: true,
       references: {
@@ -27,22 +35,26 @@ module.exports = function(sequelize, DataTypes) {
         key: 'id'
       }
     },
-    wallet_type_id: {
+    paid_at: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    withdrawal_status_id: {
       type: DataTypes.STRING,
-      allowNull: false,
-      references: {
-        model: 'reff_wallet_type',
-        key: 'id'
-      }
+      allowNull: false
+    },
+    chain_trx_id: {
+      type: DataTypes.STRING,
+      allowNull: true
     }
   }, {
     sequelize,
-    tableName: 'wallet',
+    tableName: 'withdrawal',
     schema: 'public',
     timestamps: true,
     indexes: [
       {
-        name: "wallet_pk",
+        name: "withdrawal_pk",
         unique: true,
         fields: [
           { name: "id" },

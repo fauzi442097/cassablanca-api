@@ -15,7 +15,7 @@ const getDataByRankingIdAndReqType = async (rankingId, reqTypeId) => {
 const updateByRankingIdAndReqType = async (rankingId, data, options) => {
   return await ranking_req.update(
     {
-      ranking_id_member: data.ranking_id_member,
+      ranking_id_member: data.levelId,
       value: data.value,
     },
     {
@@ -29,7 +29,30 @@ const updateByRankingIdAndReqType = async (rankingId, data, options) => {
   );
 };
 
+const store = async (data, options) => {
+  return await ranking_req.create(
+    data,
+    {
+      returning: true,
+    },
+    options
+  );
+};
+
+const deleteMultipe = async (arrId, options) => {
+  return await ranking_req.destroy({
+    where: {
+      id: {
+        [Op.in]: arrId,
+      },
+    },
+    options,
+  });
+};
+
 module.exports = {
   getDataByRankingIdAndReqType,
   updateByRankingIdAndReqType,
+  store,
+  deleteMultipe,
 };

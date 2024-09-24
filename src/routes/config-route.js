@@ -4,7 +4,7 @@ const configController = require("../controllers/config-controller");
 const validateRequest = require("../middleware/validate-request");
 const {
   configBonusSchema,
-  configLevelSchema,
+  levelSchema,
 } = require("../validation/ranking-validation");
 
 const router = express.Router();
@@ -12,9 +12,14 @@ const router = express.Router();
 router.get("/level", configController.getLevel);
 router.get("/level/:rankingId", configController.getLevelByRankingId);
 router.put(
-  "/level/:rankingId",
-  validateRequest(configLevelSchema),
+  "/level/:levelId",
+  validateRequest(levelSchema),
   configController.updateLevel
+);
+router.post(
+  "/level",
+  validateRequest(levelSchema),
+  configController.createLevel
 );
 
 // BONUS

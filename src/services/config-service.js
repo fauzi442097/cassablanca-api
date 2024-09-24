@@ -1,6 +1,6 @@
 const db = require("../config/database.js");
 const initModels = require("../models/init-models.js");
-const { withTransaction } = require("../utils/helper.js");
+const { withTransaction, toSnakeCase } = require("../utils/helper.js");
 const ResponseError = require("../utils/response-error.js");
 const { ranking, ranking_req, reff_ranking_req_type } = initModels(db);
 
@@ -31,45 +31,117 @@ const updateRanking = async (rankingId, data) => {
   const dataRanking = await rankingRepository.getDataById(rankingId);
   if (!dataRanking) throw new ResponseError("Data tidak ditemukan", 404);
 
-  // Log Audit
-  let dataAuditRanking = {
-    event: "Update level",
-    model_id: dataRanking.id,
-    model_name: ranking.tableName,
-    old_values: dataRanking,
-  };
-
   return withTransaction(async (transaction) => {
-    const newDataRanking = await rankingRepository.updateRankingName(
+    const newDataRanking = await rankingRepository.updateRanking(
       rankingId,
-      data.ranking_nm,
+      data,
       transaction
     );
 
+    // Log Audit
+    let dataAuditRanking = {
+      event: "Update level",
+      model_id: dataRanking.id,
+      model_name: ranking.tableName,
+      old_values: dataRanking,
+    };
     dataAuditRanking = { ...dataAuditRanking, new_values: newDataRanking };
     await auditService.store(dataAuditRanking, transaction);
 
-    for (const item of data.ranking_req_type) {
+    let newRankingReq;
+    let auditReqRanking;
+
+    for (const item of data.levelRequirement) {
       const oldRankingReq =
         await rankingReqRepository.getDataByRankingIdAndReqType(
           rankingId,
           item.id
         );
 
-      const newRankingReq =
-        await rankingReqRepository.updateByRankingIdAndReqType(
+      if (oldRankingReq) {
+        // UPDATE EXISTING REQUIREMENT
+        newRankingReq = await rankingReqRepository.updateByRankingIdAndReqType(
           rankingId,
           item,
           transaction
         );
 
-      // Log Audit
+        // Log Audit
+        auditReqRanking = {
+          event: `Update persyaratan untuk level ${dataRanking.ranking_nm}`,
+          model_id: dataRanking.id,
+          model_name: ranking_req.tableName,
+          old_values: oldRankingReq,
+          new_values: newRankingReq,
+        };
+      } else {
+        // INSERT NEW REQUIREMENT
+        let newRankingReq = {
+          ranking_id: rankingId,
+          ranking_req_type_id: item.id,
+          ranking_id_member: item.levelId,
+          value: item.value,
+        };
+
+        newRankingReq = await rankingReqRepository.store(
+          newRankingReq,
+          transaction
+        );
+
+        auditReqRanking = {
+          event: `Tambah persyaratan untuk level ${dataRanking.ranking_nm}`,
+          model_id: newRankingReq.id,
+          model_name: ranking_req.tableName,
+          new_values: newRankingReq,
+        };
+      }
+
+      await auditService.store(auditReqRanking, transaction);
+    }
+  });
+};
+
+const createRankingWithRequirement = async (data) => {
+  const maxLevel = await ranking.max("lvl");
+  const newLevel = (maxLevel || 0) + 1; // If maxLevel is null, start from 0
+  data = {
+    ...data,
+    id: toSnakeCase(data.levelName),
+    lvl: newLevel,
+  };
+
+  return withTransaction(async (transaction) => {
+    // Calculate the new level
+    const rankingCreated = await rankingRepository.store(data, transaction);
+
+    // Log Audit
+    let dataAuditRanking = {
+      event: "Tambah level",
+      model_id: rankingCreated.id,
+      model_name: ranking.tableName,
+      new_values: rankingCreated,
+    };
+    dataAuditRanking = { ...dataAuditRanking };
+    await auditService.store(dataAuditRanking, transaction);
+
+    for (const item of data.levelRequirement) {
+      const dataRankingReq = {
+        ranking_id: rankingCreated.id,
+        ranking_req_type_id: item.id,
+        ranking_id_member: item.levelId,
+        value: item.value,
+      };
+
+      const rankingReqCreated = await rankingReqRepository.store(
+        dataRankingReq,
+        transaction
+      );
+
       let auditReqRanking = {
-        event: `Update persyaratan untuk level ${dataRanking.ranking_nm}`,
-        model_id: dataRanking.id,
+        event: `Tambah persyaratan untuk level ${data.levelName}`,
+        model_id: rankingReqCreated.id,
         model_name: ranking_req.tableName,
-        old_values: oldRankingReq,
-        new_values: newRankingReq,
+        new_values: rankingReqCreated,
       };
       await auditService.store(auditReqRanking, transaction);
     }
@@ -141,4 +213,5 @@ module.exports = {
   getRankingBonuses,
   updateRankingBonus,
   getRankingBonusById,
+  createRankingWithRequirement,
 };

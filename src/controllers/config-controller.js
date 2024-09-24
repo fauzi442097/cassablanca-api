@@ -9,8 +9,14 @@ const getLevel = tryCatch(async (req, res) => {
 
 const updateLevel = tryCatch(async (req, res) => {
   const body = req.body;
-  const { rankingId } = req.params;
-  await configService.updateRanking(rankingId, body);
+  const { levelId } = req.params;
+  await configService.updateRanking(levelId, body);
+  return Response.Success(res, null, "Data berhasil disimpan");
+});
+
+const createLevel = tryCatch(async (req, res) => {
+  const body = req.body;
+  await configService.createRankingWithRequirement(body);
   return Response.Success(res, null, "Data berhasil disimpan");
 });
 
@@ -45,4 +51,5 @@ module.exports = {
   getRankingBonus,
   updateRankingBonus,
   getRakingBonusById,
+  createLevel,
 };

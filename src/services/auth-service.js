@@ -59,13 +59,16 @@ const verifyOTPService = async (email, otp) => {
     throw new ResponseError("OTP Expired", 401);
   }
 
-  const token = jwt.sign(
-    { email, id: user.id, full_name: user.fullname },
-    process.env.JWT_SECRET,
-    {
-      expiresIn: "1h", // 1 Hour
-    }
-  );
+  const payload = {
+    email: email,
+    id: user.id,
+    full_name: user.fullname,
+    role_id: user.role_id,
+  };
+
+  const token = jwt.sign(payload, process.env.JWT_SECRET, {
+    expiresIn: "1h", // 1 Hour
+  });
 
   // Log Audit
   const dataAudit = {

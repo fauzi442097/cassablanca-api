@@ -11,7 +11,7 @@ const { ROLE } = require("../utils/ref-value.js");
 const router = express.Router();
 router.use("/persons", personRoute);
 router.use("/ref", referensiRoute);
-router.use("/config", authorize([ROLE.ADMIN]), configRoute);
+router.use("/config", authorize([ROLE.ADMIN_CONTINENTAL]), configRoute);
 router.use("/audits", auditRoute);
 router.use(authRouter);
 

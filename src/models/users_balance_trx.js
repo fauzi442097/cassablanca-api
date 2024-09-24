@@ -1,11 +1,15 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('product', {
+  return sequelize.define('users_balance_trx', {
     id: {
       autoIncrement: true,
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true
+    },
+    user_id: {
+      type: DataTypes.BIGINT,
+      allowNull: false
     },
     curr_id: {
       type: DataTypes.STRING,
@@ -15,26 +19,28 @@ module.exports = function(sequelize, DataTypes) {
         key: 'id'
       }
     },
-    price: {
+    amount: {
       type: DataTypes.DECIMAL,
       allowNull: false
     },
-    sharing_pct_usdt: {
-      type: DataTypes.DOUBLE,
-      allowNull: true
+    dbcr: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      comment: "0:debet\r\n1:kredit"
     },
-    sharing_pct_product: {
-      type: DataTypes.DOUBLE,
+    description: {
+      type: DataTypes.TEXT,
       allowNull: true
     }
   }, {
     sequelize,
-    tableName: 'product',
+    tableName: 'users_balance_trx',
     schema: 'public',
+    hasTrigger: true,
     timestamps: true,
     indexes: [
       {
-        name: "product_pk",
+        name: "user_balance_trx_pk",
         unique: true,
         fields: [
           { name: "id" },

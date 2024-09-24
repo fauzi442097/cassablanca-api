@@ -15,8 +15,13 @@ const db = require("./config/database.js");
 require("dotenv").config();
 
 const corsOptions = {
-  origin: ["http://localhost:3000", "::1", "http://127.0.0.1:5500"],
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  origin: [
+    "http://localhost:3000",
+    "::1",
+    "http://127.0.0.1:5500",
+    "192.168.143.49",
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "FETCH"],
   // allowedHeaders: ["Content-Type", "Authorization"],
   // exposedHeaders: ["Custom-Header"],
   optionsSuccessStatus: 200,

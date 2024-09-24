@@ -22,8 +22,7 @@ const authorize = (roles = []) => {
         return Response.Unauthorized(res, "Unauthorized. Token is invalid");
       }
 
-      // Check if the user's role is in the allowed roles
-      if (roles.length && !roles.includes(user.role_in)) {
+      if (roles.length && !roles.includes(user.role_id)) {
         return Response.Forbidden(res, "Akses tidak diizinkan");
       }
 

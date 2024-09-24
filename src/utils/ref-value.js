@@ -5,7 +5,8 @@ const STATUS_USER = {
 };
 
 const ROLE = {
-  ADMIN: 1,
+  ADMIN_CASSABLANCA: 1,
+  ADMIN_CONTINENTAL: 3,
   MEMBER: 2,
 };
 

@@ -44,6 +44,16 @@ module.exports = function(sequelize, DataTypes) {
     paid_at: {
       type: DataTypes.DATE,
       allowNull: true
+    },
+    address: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: "Address Tujuan"
+    },
+    coin_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: "Coin Id Tujuan"
     }
   }, {
     sequelize,
