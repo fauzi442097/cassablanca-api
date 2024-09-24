@@ -25,7 +25,12 @@ const updateOTPByUserId = async (userId, otp, expiredAt, options) => {
   );
 };
 
+const getDataById = async (userId) => {
+  return await users.findByPk(userId);
+};
+
 module.exports = {
   getDataByEmail,
   updateOTPByUserId,
+  getDataById,
 };

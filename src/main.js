@@ -19,7 +19,7 @@ const corsOptions = {
     "http://localhost:3000",
     "::1",
     "http://127.0.0.1:5500",
-    "192.168.143.49",
+    "192.168.57.49",
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "FETCH"],
   // allowedHeaders: ["Content-Type", "Authorization"],

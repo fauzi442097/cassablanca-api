@@ -80,7 +80,15 @@ const verifyOTPService = async (email, otp) => {
   };
   await auditService.store(dataAudit);
 
-  return token;
+  return {
+    token,
+    user: {
+      id: user.id,
+      email: user.email,
+      full_name: user.fullname,
+      role_id: user.role_id,
+    },
+  };
 };
 
 const registerMemberByReferalCode = async (data) => {
@@ -146,8 +154,19 @@ const sendEmailOTP = async (otp, email) => {
   });
 };
 
+const getCurrentUserLogin = async (userId) => {
+  const user = await userRepository.getDataById(userId);
+  return {
+    id: user.id,
+    email: user.email,
+    full_name: user.fullname,
+    role_id: user.role_id,
+  };
+};
+
 module.exports = {
   requestOTPService,
   verifyOTPService,
   registerMemberByReferalCode,
+  getCurrentUserLogin,
 };

@@ -21,4 +21,6 @@ router.post(
 );
 router.post("/sign-up", validateRequest(signUpSchema), authController.signUp);
 
+router.get("/user/:userId", authController.getUser);
+
 module.exports = router;

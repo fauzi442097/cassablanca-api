@@ -17,8 +17,9 @@ const verifyOTP = tryCatch(async (req, res) => {
     return Response.BadRequest(res, "Email dan OTP wajib diisi");
   }
 
-  const token = await authService.verifyOTPService(email, otp);
-  return Response.Success(res, { token });
+  const { token, user } = await authService.verifyOTPService(email, otp);
+  const responseData = { user, token };
+  return Response.Success(res, responseData);
 });
 
 const signUp = tryCatch(async (req, res) => {
@@ -31,8 +32,16 @@ const signUp = tryCatch(async (req, res) => {
   );
 });
 
+const getUser = async (req, res) => {
+  const { userId } = req.params;
+  const data = await authService.getCurrentUserLogin(userId);
+  if (!data) return Response.NotFound(res, "User tidak ditemukan");
+  return Response.Success(res, data);
+};
+
 module.exports = {
   requestOTP,
   verifyOTP,
   signUp,
+  getUser,
 };

@@ -5,6 +5,9 @@ const ResponseError = require("../utils/response-error");
 const jwt = require("jsonwebtoken");
 
 const { audits } = initModels(db);
+const userRepository = require("../repositories/user-repository");
+const { use } = require("../routes");
+
 const getAll = async (page, size, search) => {
   const offset = (page - 1) * size;
   const whereCondition = search
@@ -64,6 +67,8 @@ const store = async (data, transaction) => {
   const withTransaction = transaction ? { transaction } : {};
   await audits.create(dataAudit, withTransaction);
 };
+
+
 
 module.exports = {
   getAll,
