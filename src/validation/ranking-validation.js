@@ -8,16 +8,19 @@ const configBonusSchema = z.object({
 
 const levelRequirementSchema = z.object({
   id: z.string({ required_error: "Wajib diisi" }),
-  levelId: z.string().nullable(),
+  level_id: z.string().nullable(),
   value: z.number({ required_error: "Wajib diisi" }).positive().nullable(),
 });
 
 const levelSchema = z.object({
-  levelName: z.string({ required_error: "Wajib diisi" }).max(30),
-  levelRequirement: z.array(levelRequirementSchema),
-  directBonus: z.number({ required_error: "Wajib diisi" }).min(0).max(100),
-  rankingBonus: z.number({ required_error: "Wajib diisi" }).min(0).max(100),
-  globalBonus: z.number({ required_error: "Wajib diisi" }).min(0).max(100),
+  level_name: z
+    .string({ required_error: "Wajib diisi" })
+    .min(1, "Wajib diisi")
+    .max(30),
+  level_requirement: z.array(levelRequirementSchema),
+  direct_bonus: z.number({ required_error: "Wajib diisi" }).min(0).max(100),
+  ranking_bonus: z.number({ required_error: "Wajib diisi" }).min(0).max(100),
+  global_sharing: z.number({ required_error: "Wajib diisi" }).min(0).max(100),
 });
 
 const configLevelSchema = z.object({

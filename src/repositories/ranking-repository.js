@@ -1,52 +1,39 @@
 const db = require("../config/database");
 const initModels = require("../models/init-models");
-const { toSnakeCase } = require("../utils/helper");
 
 const { ranking } = initModels(db);
 
-const getAll = async (options) => {
-  const data = await ranking.findAll(options);
+const getAll = async (transaction) => {
+  const data = await ranking.findAll(transaction);
   return data;
 };
 
-const getDataById = async (rankingId, options) => {
-  const data = await ranking.findByPk(rankingId, options);
+const getDataById = async (rankingId, transaction) => {
+  const data = await ranking.findByPk(rankingId, transaction);
   return data;
 };
 
-const updateBonusRankingById = async (rankingId, data, options = undefined) => {
+const updateBonusRankingById = async (rankingId, data, transaction) => {
   return await ranking.update(data, {
     where: {
       id: rankingId,
     },
     returning: true,
-    options,
+    transaction,
   });
 };
 
-const updateRanking = async (rankingId, data, options = undefined) => {
-  return await ranking.update(
-    {
-      ranking_nm: data.levelName,
-      direct_bonus: data.directBonus,
-      ranking_bonus: data.rankingBonus,
-      global_bonus: data.globalBonus,
+const updateRanking = async (rankingId, data, transaction) => {
+  return await ranking.update(data, {
+    where: {
+      id: rankingId,
     },
-    {
-      where: {
-        id: rankingId,
-      },
-      returning: true,
-      options,
-    }
-  );
+    returning: true,
+    transaction,
+  });
 };
 
-const updateRankingName = async (
-  rankingId,
-  rankingName,
-  options = undefined
-) => {
+const updateRankingName = async (rankingId, rankingName, transaction) => {
   return await ranking.update(
     {
       ranking_nm: rankingName,
@@ -56,26 +43,26 @@ const updateRankingName = async (
         id: rankingId,
       },
       returning: true,
-      options,
+      transaction,
     }
   );
 };
 
-const store = async (data, options) => {
-  return await ranking.create(
-    {
-      id: data.id,
-      ranking_nm: data.levelName,
-      direct_bonus: data.directBonus,
-      ranking_bonus: data.rankingBonus,
-      global_bonus: data.globalBonus,
-      lvl: data.lvl,
+const store = async (data, transaction) => {
+  return await ranking.create(data, {
+    returning: true,
+    transaction,
+  });
+};
+
+const deleteById = async (rankingId, transaction) => {
+  return await ranking.destroy({
+    where: {
+      id: rankingId,
     },
-    {
-      returning: true,
-      options,
-    }
-  );
+    returning: true,
+    transaction,
+  });
 };
 
 module.exports = {
@@ -85,4 +72,5 @@ module.exports = {
   getDataById,
   updateRankingName,
   store,
+  deleteById,
 };

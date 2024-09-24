@@ -31,10 +31,22 @@ const updateRanking = async (rankingId, data) => {
   const dataRanking = await rankingRepository.getDataById(rankingId);
   if (!dataRanking) throw new ResponseError("Data tidak ditemukan", 404);
 
+  const prevRankingReq = await rankingReqRepository.getDataByRankingId(
+    rankingId
+  );
+  const arrRankingReqId = prevRankingReq.map((item) => item.id);
+
+  const DTORanking = {
+    ranking_nm: data.level_name,
+    direct_bonus: data.direct_bonus,
+    ranking_bonus: data.ranking_bonus,
+    global_bonus: data.global_sharing,
+  };
+
   return withTransaction(async (transaction) => {
     const newDataRanking = await rankingRepository.updateRanking(
       rankingId,
-      data,
+      DTORanking,
       transaction
     );
 
@@ -48,87 +60,63 @@ const updateRanking = async (rankingId, data) => {
     dataAuditRanking = { ...dataAuditRanking, new_values: newDataRanking };
     await auditService.store(dataAuditRanking, transaction);
 
-    let newRankingReq;
-    let auditReqRanking;
+    await rankingReqRepository.deleteMultipe(arrRankingReqId);
 
-    for (const item of data.levelRequirement) {
-      const oldRankingReq =
-        await rankingReqRepository.getDataByRankingIdAndReqType(
-          rankingId,
-          item.id
-        );
+    for (const item of data.level_requirement) {
+      // INSERT NEW REQUIREMENT
+      let DRORankingReq = {
+        ranking_id: rankingId,
+        ranking_req_type_id: item.id,
+        ranking_id_member: item.level_id,
+        value: item.value,
+      };
 
-      if (oldRankingReq) {
-        // UPDATE EXISTING REQUIREMENT
-        newRankingReq = await rankingReqRepository.updateByRankingIdAndReqType(
-          rankingId,
-          item,
-          transaction
-        );
-
-        // Log Audit
-        auditReqRanking = {
-          event: `Update persyaratan untuk level ${dataRanking.ranking_nm}`,
-          model_id: dataRanking.id,
-          model_name: ranking_req.tableName,
-          old_values: oldRankingReq,
-          new_values: newRankingReq,
-        };
-      } else {
-        // INSERT NEW REQUIREMENT
-        let newRankingReq = {
-          ranking_id: rankingId,
-          ranking_req_type_id: item.id,
-          ranking_id_member: item.levelId,
-          value: item.value,
-        };
-
-        newRankingReq = await rankingReqRepository.store(
-          newRankingReq,
-          transaction
-        );
-
-        auditReqRanking = {
-          event: `Tambah persyaratan untuk level ${dataRanking.ranking_nm}`,
-          model_id: newRankingReq.id,
-          model_name: ranking_req.tableName,
-          new_values: newRankingReq,
-        };
-      }
-
-      await auditService.store(auditReqRanking, transaction);
+      await rankingReqRepository.store(DRORankingReq, transaction);
     }
+
+    let rankingReqAudit = {
+      event: "Update persyaratan level",
+      model_id: dataRanking.id,
+      model_name: ranking_req.tableName,
+      old_values: prevRankingReq,
+      new_values: data.level_requirement,
+    };
+    await auditService.store(rankingReqAudit, transaction);
   });
 };
 
 const createRankingWithRequirement = async (data) => {
   const maxLevel = await ranking.max("lvl");
   const newLevel = (maxLevel || 0) + 1; // If maxLevel is null, start from 0
-  data = {
-    ...data,
-    id: toSnakeCase(data.levelName),
+  const DTORanking = {
+    id: toSnakeCase(data.level_name),
+    ranking_nm: data.level_name,
+    direct_bonus: data.direct_bonus,
+    ranking_bonus: data.direct_bonus,
+    global_sharing: data.direct_bonus,
     lvl: newLevel,
   };
 
   return withTransaction(async (transaction) => {
-    // Calculate the new level
-    const rankingCreated = await rankingRepository.store(data, transaction);
+    const rankingCreated = await rankingRepository.store(
+      DTORanking,
+      transaction
+    );
 
     // Log Audit
     let dataAuditRanking = {
-      event: "Tambah level",
+      event: `Tambah level '${data.level_name}'`,
       model_id: rankingCreated.id,
       model_name: ranking.tableName,
       new_values: rankingCreated,
     };
-    dataAuditRanking = { ...dataAuditRanking };
     await auditService.store(dataAuditRanking, transaction);
 
-    for (const item of data.levelRequirement) {
+    for (const item of data.level_requirement) {
       const dataRankingReq = {
         ranking_id: rankingCreated.id,
         ranking_req_type_id: item.id,
-        ranking_id_member: item.levelId,
+        ranking_id_member: item.level_id,
         value: item.value,
       };
 
@@ -138,13 +126,49 @@ const createRankingWithRequirement = async (data) => {
       );
 
       let auditReqRanking = {
-        event: `Tambah persyaratan untuk level ${data.levelName}`,
+        event: `Tambah persyaratan untuk level '${data.level_name}'`,
         model_id: rankingReqCreated.id,
         model_name: ranking_req.tableName,
         new_values: rankingReqCreated,
       };
       await auditService.store(auditReqRanking, transaction);
     }
+  });
+};
+
+const deleteRankingWithRequirement = async (rankingId) => {
+  const dataRanking = await rankingRepository.getDataById(rankingId);
+  if (!dataRanking) throw new ResponseError("Data tidak ditemukan", 404);
+
+  const dataReqRanking = await rankingReqRepository.getDataByRankingId(
+    rankingId
+  );
+  const arrIdDeleted = dataReqRanking.map((item) => item.id).join(", ");
+
+  return withTransaction(async (transaction) => {
+    // DELETE RANKING REQUIREMENT
+    await rankingReqRepository.deleteByRankingId(rankingId, transaction);
+
+    // Log Audit
+    let dataAuditRanking = {
+      event: `Delete persyaratan untuk level ${dataRanking.ranking_nm}`,
+      model_id: arrIdDeleted,
+      model_name: ranking_req.tableName,
+      old_values: dataReqRanking,
+    };
+    await auditService.store(dataAuditRanking, transaction);
+
+    // DELETE RANKING
+    await rankingRepository.deleteById(rankingId, transaction);
+
+    // Log Audit
+    dataAuditRanking = {
+      event: `Delete level ${dataRanking.ranking_nm}`,
+      model_id: dataRanking.id,
+      model_name: ranking.tableName,
+      old_values: dataRanking,
+    };
+    await auditService.store(dataAuditRanking, transaction);
   });
 };
 
@@ -214,4 +238,5 @@ module.exports = {
   updateRankingBonus,
   getRankingBonusById,
   createRankingWithRequirement,
+  deleteRankingWithRequirement,
 };

@@ -1,34 +1,26 @@
 const express = require("express");
 
-const configController = require("../controllers/config-controller");
+const rankingController = require("../controllers/config/ranking-controller");
 const validateRequest = require("../middleware/validate-request");
-const {
-  configBonusSchema,
-  levelSchema,
-} = require("../validation/ranking-validation");
+const { levelSchema } = require("../validation/ranking-validation");
 
 const router = express.Router();
+
 // LEVEL
-router.get("/level", configController.getLevel);
-router.get("/level/:rankingId", configController.getLevelByRankingId);
+router.get("/level", rankingController.getLevel);
+router.get("/level/:rankingId", rankingController.getLevelByRankingId);
 router.put(
   "/level/:levelId",
   validateRequest(levelSchema),
-  configController.updateLevel
+  rankingController.updateLevel
 );
 router.post(
   "/level",
   validateRequest(levelSchema),
-  configController.createLevel
+  rankingController.createLevel
 );
+router.delete("/level/:levelId", rankingController.deleteLevel);
 
-// BONUS
-router.get("/bonus", configController.getRankingBonus);
-router.get("/bonus/:rankingId", configController.getRakingBonusById);
-router.put(
-  "/bonus/:rankingId",
-  validateRequest(configBonusSchema),
-  configController.updateRankingBonus
-);
+// PRODUCT
 
 module.exports = router;

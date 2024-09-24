@@ -1,3 +1,4 @@
+const { Sequelize } = require("sequelize");
 const logger = require("../config/logging");
 const Response = require("../utils/response-handler");
 
@@ -25,6 +26,21 @@ const errorHandler = (err, req, res, next) => {
     url: req.originalUrl,
     stack: err.stack,
   });
+
+  if (err instanceof Sequelize.BaseError) {
+    // Further check for specific error types
+    let errorMessage = "";
+    if (
+      err instanceof Sequelize.ValidationError ||
+      err instanceof Sequelize.UniqueConstraintError
+    ) {
+      errorMessage = err.errors.map((e) => e.message).join(", ");
+    } else {
+      errorMessage = err.message;
+    }
+
+    return Response.Error(res, err.stack, errorMessage);
+  }
 
   return Response.Error(res, err.stack);
 };

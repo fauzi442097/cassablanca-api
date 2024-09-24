@@ -16,9 +16,14 @@ const successResponse = (
   }
 };
 
-const errorResponse = (res, error = null, statusCode = 500) => {
+const errorResponse = (
+  res,
+  error = null,
+  message = "Internal server error",
+  statusCode = 500
+) => {
   return res.status(statusCode).json({
-    message: "Internal server error",
+    message: message,
     error:
       process.env.NODE_ENV === "development" || process.env.NODE_ENV === "local"
         ? error

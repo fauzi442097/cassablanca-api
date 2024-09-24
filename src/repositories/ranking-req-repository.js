@@ -12,7 +12,7 @@ const getDataByRankingIdAndReqType = async (rankingId, reqTypeId) => {
   });
 };
 
-const updateByRankingIdAndReqType = async (rankingId, data, options) => {
+const updateByRankingIdAndReqType = async (rankingId, data, transaction) => {
   return await ranking_req.update(
     {
       ranking_id_member: data.levelId,
@@ -25,28 +25,43 @@ const updateByRankingIdAndReqType = async (rankingId, data, options) => {
       },
       returning: true,
     },
-    options
+    transaction
   );
 };
 
-const store = async (data, options) => {
-  return await ranking_req.create(
-    data,
-    {
-      returning: true,
+const getDataByRankingId = async (rankingId) => {
+  return await ranking_req.findAll({
+    where: {
+      ranking_id: rankingId,
     },
-    options
-  );
+  });
 };
 
-const deleteMultipe = async (arrId, options) => {
+const store = async (data, transaction) => {
+  return await ranking_req.create(data, {
+    returning: true,
+    transaction,
+  });
+};
+
+const deleteMultipe = async (arrId, transaction) => {
   return await ranking_req.destroy({
     where: {
       id: {
         [Op.in]: arrId,
       },
     },
-    options,
+    transaction,
+  });
+};
+
+const deleteByRankingId = async (rankingId, transaction) => {
+  return await ranking_req.destroy({
+    where: {
+      ranking_id: rankingId,
+    },
+    transaction,
+    returning: true,
   });
 };
 
@@ -55,4 +70,6 @@ module.exports = {
   updateByRankingIdAndReqType,
   store,
   deleteMultipe,
+  getDataByRankingId,
+  deleteByRankingId,
 };
