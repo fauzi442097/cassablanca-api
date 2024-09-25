@@ -39,7 +39,7 @@ const updateWallet = async (walletId, data) => {
     );
 
     const AuditDTO = {
-      event: `Update data address '${data.wallet_type_id}' - '${data.coin_id}'`,
+      event: `Update address wallet`,
       model_id: dataExisting.id,
       model_name: wallet.tableName,
       old_values: dataExisting,
@@ -66,7 +66,7 @@ const storeWallet = async (data) => {
   return withTransaction(async (transaction) => {
     const dataCreated = await walletRepository.store(data, transaction);
     const AuditDTO = {
-      event: `Tambah data address '${data.wallet_type_id}' - '${data.coin_id}'`,
+      event: `Tambah address wallet`,
       model_id: dataCreated.id,
       model_name: wallet.tableName,
       new_values: dataCreated,
@@ -83,7 +83,7 @@ const deleteWalletById = async (walletId) => {
     await walletRepository.deleteById(walletId, transaction);
 
     const AuditDTO = {
-      event: `hapus data address '${dataExisting.wallet_type_id}' - '${dataExisting.coin_id}'`,
+      event: `Hapus address wallet`,
       model_id: dataExisting.id,
       model_name: wallet.tableName,
       old_values: dataExisting,

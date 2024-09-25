@@ -31,7 +31,7 @@ const updateProduct = async (productId, data) => {
     );
 
     const AuditDTO = {
-      event: `Update data produk '${data.curr_id}'`,
+      event: `Update produk'`,
       model_id: productExisting.id,
       model_name: product.tableName,
       old_values: productExisting,
@@ -54,7 +54,7 @@ const storeProduct = async (data) => {
   return withTransaction(async (transaction) => {
     const dataCreated = await productRepository.store(ProductDTO, transaction);
     const AuditDTO = {
-      event: `Tambah data produk '${data.curr_id}'`,
+      event: `Tambah produk`,
       model_id: dataCreated.id,
       model_name: product.tableName,
       new_values: dataCreated,
@@ -71,7 +71,7 @@ const deleteProductById = async (productId) => {
     await productRepository.deleteById(productId, transaction);
 
     const AuditDTO = {
-      event: `hapus data produk '${productExisting.curr_id}'`,
+      event: `Hapus produk`,
       model_id: productExisting.id,
       model_name: product.tableName,
       old_values: productExisting,

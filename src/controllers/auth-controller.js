@@ -11,13 +11,8 @@ const requestOTP = tryCatch(async (req, res) => {
 });
 
 const verifyOTP = tryCatch(async (req, res) => {
-  const { email, otp } = req.body;
-
-  if (!email || !otp) {
-    return Response.BadRequest(res, "Email dan OTP wajib diisi");
-  }
-
-  const { token, user } = await authService.verifyOTPService(email, otp);
+  const { otp } = req.body;
+  const { token, user } = await authService.verifyOTPService(otp);
   const responseData = { user, token };
   return Response.Success(res, responseData);
 });

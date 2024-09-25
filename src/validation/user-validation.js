@@ -8,10 +8,6 @@ const requestOTPValidation = z.object({
 });
 
 const requestVerifyOtpValidation = z.object({
-  email: z
-    .string({ required_error: "Wajib diisi" })
-    .min(1, "Wajib diisi")
-    .email(),
   otp: z
     .string()
     .length(6, { message: "OTP harus terdiri dari 6 digit" })

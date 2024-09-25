@@ -49,18 +49,20 @@ const requestOTPService = async (email) => {
   });
 };
 
-const verifyOTPService = async (email, otp) => {
-  const user = await userRepository.getDataByEmail(email);
-  if (!user || user.otp != otp)
-    throw new ResponseError("Email atau OTP salah", 401);
+const verifyOTPService = async (otp) => {
+  const user = await userRepository.getDataByOTP(otp);
+  if (!user) throw new ResponseError("Kode OTP salah", 401);
 
   const currentData = new Date();
   if (currentData > user.expired_otp) {
-    throw new ResponseError("OTP Expired", 401);
+    throw new ResponseError(
+      "Kode OTP kadaluarsa. Silakan request ulang untuk mendapatkan kode baru",
+      401
+    );
   }
 
   const payload = {
-    email: email,
+    email: user.email,
     id: user.id,
     full_name: user.fullname,
     role_id: user.role_id,

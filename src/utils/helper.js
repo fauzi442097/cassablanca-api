@@ -73,6 +73,34 @@ const getNextId = async (model) => {
   return nextId;
 };
 
+const getRefTitle = (refName) => {
+  let refTitle = "";
+  switch (refName) {
+    case "ranking-req":
+      refTitle = "Persyaratan Level";
+      break;
+    case "user-status":
+      refTitle = "User Status";
+      break;
+    case "wallet-type":
+      refTitle = "Jenis Wallet";
+      break;
+    case "withdrawal-status":
+      refTitle = "Withdrawal Status";
+      break;
+    case "bonus-status":
+      refTitle = "Bonus Status";
+      break;
+    case "currency":
+      refTitle = "Currency";
+      break;
+    case "chain":
+      refTitle = "Chain";
+      break;
+  }
+  return refTitle;
+};
+
 module.exports = {
   generateOtp,
   tryCatch,
@@ -82,4 +110,5 @@ module.exports = {
   getRequestObject,
   generateReferralCode,
   getNextId,
+  getRefTitle,
 };

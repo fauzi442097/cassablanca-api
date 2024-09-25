@@ -25,7 +25,8 @@ const getDataById = async (id, modelName) => {
 
 const store = async (data, modelName, refName) => {
   const Model = models[modelName];
-  const { formData, refTitle } = await generateObjectData(data, refName, Model);
+  const formData = await generateObjectData(data, refName, Model);
+  const refTitle = helper.getRefTitle(refName);
 
   return helper.withTransaction(async (transaction) => {
     const dataCreated = await Model.create(formData, {
@@ -34,7 +35,7 @@ const store = async (data, modelName, refName) => {
     });
 
     const AuditDTO = {
-      event: `Tambah data referensi ${refTitle}`,
+      event: `Tambah referensi ${refTitle}`,
       model_id: dataCreated.id,
       model_name: Model.tableName,
       new_values: dataCreated,
@@ -45,12 +46,9 @@ const store = async (data, modelName, refName) => {
 
 const update = async (id, data, modelName, refName) => {
   const Model = models[modelName];
-  const { formData, refTitle } = await generateObjectData(
-    data,
-    refName,
-    Model,
-    id
-  );
+
+  const formData = await generateObjectData(data, refName, Model, id);
+  const refTitle = helper.getRefTitle(refName);
 
   const dataExisting = await Model.findByPk(id);
   if (!dataExisting) throw new ResponseError("Data tidak ditemukan", 404);
@@ -63,7 +61,7 @@ const update = async (id, data, modelName, refName) => {
     });
 
     const AuditDTO = {
-      event: `Ubah data referensi ${refTitle}`,
+      event: `Ubah referensi ${refTitle}`,
       model_id: id,
       model_name: Model.tableName,
       old_values: dataExisting,
@@ -75,6 +73,7 @@ const update = async (id, data, modelName, refName) => {
 
 const deleteById = async (id, modelName, refName) => {
   const Model = models[modelName];
+  const refTitle = helper.getRefTitle(refName);
 
   const dataExisting = await Model.findByPk(id);
   if (!dataExisting) throw new ResponseError("Data tidak ditemukan", 404);
@@ -87,7 +86,7 @@ const deleteById = async (id, modelName, refName) => {
     });
 
     const AuditDTO = {
-      event: `Hapus data referensi ${refName}`,
+      event: `Hapus referensi ${refTitle}`,
       model_id: id,
       model_name: Model.tableName,
       old_values: dataExisting,
@@ -98,47 +97,39 @@ const deleteById = async (id, modelName, refName) => {
 
 const generateObjectData = async (data, refName, model, id = null) => {
   let formData;
-  let refTitle;
 
   switch (refName) {
     case "ranking-req":
       id = helper.toSnakeCase(data.ranking_req_type_nm);
       formData = { id, ...data };
-      refTitle = "'Ranking Requirement'";
       break;
     case "user-status":
-      refTitle = "'User Status'";
-      id = await helper.getNextId(model);
+      id = id || (await helper.getNextId(model));
       formData = { id, ...data };
       break;
     case "wallet-type":
       id = helper.toSnakeCase(data.wallet_type_nm);
       formData = { id, ...data };
-      refTitle = "'Wallet Type'";
       break;
     case "withdrawal-status":
       id = helper.toSnakeCase(data.withdrawal_status_nm);
       formData = { id, ...data };
-      refTitle = "'Withdrawal Status'";
       break;
     case "bonus-status":
       id = helper.toSnakeCase(data.bonus_status_nm);
       formData = { id, ...data };
-      refTitle = "'Bonus Status'";
       break;
     case "currency":
       formData = { id: helper.toSnakeCase(data.id).toUpperCase() };
-      refTitle = "'Currency'";
       break;
     case "chain":
       formData = { id: helper.toSnakeCase(data.id), ...data };
-      refTitle = "'Chain'";
       break;
     default:
       formData = data;
   }
 
-  return { formData, refTitle };
+  return formData;
 };
 
 module.exports = {

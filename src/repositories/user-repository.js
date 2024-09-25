@@ -10,6 +10,14 @@ const getDataByEmail = async (email) => {
   });
 };
 
+const getDataByOTP = async (otp) => {
+  return await users.findOne({
+    where: {
+      otp: otp,
+    },
+  });
+};
+
 const updateOTPByUserId = async (userId, otp, expiredAt, options) => {
   await users.update(
     {
@@ -33,4 +41,5 @@ module.exports = {
   getDataByEmail,
   updateOTPByUserId,
   getDataById,
+  getDataByOTP,
 };

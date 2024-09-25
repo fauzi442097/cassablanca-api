@@ -105,7 +105,7 @@ const createRankingWithRequirement = async (data) => {
 
     // Log Audit
     let dataAuditRanking = {
-      event: `Tambah level '${data.level_name}'`,
+      event: `Tambah level`,
       model_id: rankingCreated.id,
       model_name: ranking.tableName,
       new_values: rankingCreated,
@@ -126,7 +126,7 @@ const createRankingWithRequirement = async (data) => {
       );
 
       let auditReqRanking = {
-        event: `Tambah persyaratan untuk level '${data.level_name}'`,
+        event: `Tambah persyaratan level`,
         model_id: rankingReqCreated.id,
         model_name: ranking_req.tableName,
         new_values: rankingReqCreated,
@@ -151,7 +151,7 @@ const deleteRankingWithRequirement = async (rankingId) => {
 
     // Log Audit
     let dataAuditRanking = {
-      event: `Delete persyaratan untuk level ${dataRanking.ranking_nm}`,
+      event: `Hapus persyaratan level`,
       model_id: arrIdDeleted,
       model_name: ranking_req.tableName,
       old_values: dataReqRanking,
@@ -163,7 +163,7 @@ const deleteRankingWithRequirement = async (rankingId) => {
 
     // Log Audit
     dataAuditRanking = {
-      event: `Delete level ${dataRanking.ranking_nm}`,
+      event: `Hapus level`,
       model_id: dataRanking.id,
       model_name: ranking.tableName,
       old_values: dataRanking,
