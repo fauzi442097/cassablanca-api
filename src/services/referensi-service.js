@@ -1,18 +1,20 @@
 const db = require("../config/database.js");
-const { Sequelize, where } = require("sequelize");
 const helper = require("../utils/helper.js");
 
-require("../models/reff_user_status")(db, Sequelize.DataTypes);
-require("../models/reff_ranking_req_type.js")(db, Sequelize.DataTypes);
+const initModels = require("../models/init-models");
+const models = initModels(db);
+
+const auditService = require("../services/audit-service.js");
+const ResponseError = require("../utils/response-error.js");
 
 const getAllData = async (modelName) => {
-  const Model = db.models[modelName];
+  const Model = models[modelName];
   const data = await Model.findAll();
   return data;
 };
 
 const getDataById = async (id, modelName) => {
-  const Model = db.models[modelName];
+  const Model = models[modelName];
   const data = await Model.findOne({
     where: {
       id: id,
@@ -22,27 +24,123 @@ const getDataById = async (id, modelName) => {
 };
 
 const store = async (data, modelName, refName) => {
-  const objData = generateObjectData(data, refName);
+  const Model = models[modelName];
+  const { formData, refTitle } = await generateObjectData(data, refName, Model);
 
-  console.log(objData);
+  return helper.withTransaction(async (transaction) => {
+    const dataCreated = await Model.create(formData, {
+      returning: true,
+      transaction,
+    });
 
-  const Model = db.models[modelName];
-  await Model.create(objData);
+    const AuditDTO = {
+      event: `Tambah data referensi ${refTitle}`,
+      model_id: dataCreated.id,
+      model_name: Model.tableName,
+      new_values: dataCreated,
+    };
+    await auditService.store(AuditDTO, transaction);
+  });
 };
 
-const generateObjectData = (data, refName) => {
-  if (refName == "ranking-req") {
-    return {
-      id: helper.toSnakeCase(data.ranking_req_type_nm),
-      ...data,
+const update = async (id, data, modelName, refName) => {
+  const Model = models[modelName];
+  const { formData, refTitle } = await generateObjectData(
+    data,
+    refName,
+    Model,
+    id
+  );
+
+  const dataExisting = await Model.findByPk(id);
+  if (!dataExisting) throw new ResponseError("Data tidak ditemukan", 404);
+
+  return helper.withTransaction(async (transaction) => {
+    const dataUpdated = await Model.update(formData, {
+      where: { id: id },
+      returning: true,
+      transaction,
+    });
+
+    const AuditDTO = {
+      event: `Ubah data referensi ${refTitle}`,
+      model_id: id,
+      model_name: Model.tableName,
+      old_values: dataExisting,
+      new_values: dataUpdated,
     };
+    await auditService.store(AuditDTO, transaction);
+  });
+};
+
+const deleteById = async (id, modelName, refName) => {
+  const Model = models[modelName];
+
+  const dataExisting = await Model.findByPk(id);
+  if (!dataExisting) throw new ResponseError("Data tidak ditemukan", 404);
+
+  return helper.withTransaction(async (transaction) => {
+    await Model.destroy({
+      where: { id: id },
+      returning: true,
+      transaction,
+    });
+
+    const AuditDTO = {
+      event: `Hapus data referensi ${refName}`,
+      model_id: id,
+      model_name: Model.tableName,
+      old_values: dataExisting,
+    };
+    await auditService.store(AuditDTO, transaction);
+  });
+};
+
+const generateObjectData = async (data, refName, model, id = null) => {
+  let formData;
+  let refTitle;
+
+  switch (refName) {
+    case "ranking-req":
+      id = helper.toSnakeCase(data.ranking_req_type_nm);
+      formData = { id, ...data };
+      refTitle = "'Ranking Requirement'";
+      break;
+    case "user-status":
+      refTitle = "'User Status'";
+      id = await helper.getNextId(model);
+      formData = { id, ...data };
+      break;
+    case "wallet-type":
+      id = helper.toSnakeCase(data.wallet_type_nm);
+      formData = { id, ...data };
+      refTitle = "'Wallet Type'";
+      break;
+    case "withdrawal-status":
+      id = helper.toSnakeCase(data.withdrawal_status_nm);
+      formData = { id, ...data };
+      refTitle = "'Withdrawal Status'";
+      break;
+    case "bonus-status":
+      id = helper.toSnakeCase(data.bonus_status_nm);
+      formData = { id, ...data };
+      refTitle = "'Bonus Status'";
+      break;
+    case "currency":
+      formData = { id: helper.toSnakeCase(data.id).toUpperCase() };
+      refTitle = "'Currency'";
+      break;
+    default:
+      formData = data;
   }
 
-  return data;
+  return { formData, refTitle };
 };
 
 module.exports = {
   getAllData,
   getDataById,
   store,
+  update,
+  deleteById,
 };

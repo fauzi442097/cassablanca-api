@@ -34,7 +34,7 @@ const updateProduct = async (productId, data) => {
       event: `Update data produk '${data.curr_id}'`,
       model_id: productExisting.id,
       model_name: product.tableName,
-      old_valus: productExisting,
+      old_values: productExisting,
       new_values: productCreated,
     };
 

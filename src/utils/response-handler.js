@@ -31,6 +31,21 @@ const errorResponse = (
   });
 };
 
+const customResponse = (
+  res,
+  statusCode = 500,
+  message = "Internal server error",
+  error = null
+) => {
+  return res.status(statusCode).json({
+    message: message,
+    error:
+      process.env.NODE_ENV === "development" || process.env.NODE_ENV === "local"
+        ? error
+        : undefined,
+  });
+};
+
 const validationErrorResponse = (
   res,
   message = "Bad Request",
@@ -67,6 +82,7 @@ const Response = {
   BadRequest: validationErrorResponse,
   Unauthorized: unauthorizedResponse,
   Forbidden: forbiddenResponse,
+  Custom: customResponse,
 };
 
 module.exports = Response;

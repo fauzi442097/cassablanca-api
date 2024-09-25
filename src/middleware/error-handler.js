@@ -18,6 +18,38 @@ const errorHandler = (err, req, res, next) => {
     return Response.Unauthorized(res, err.message);
   }
 
+  if (err instanceof Sequelize.BaseError) {
+    // Log error detail ke file
+    logger.error({
+      message: err.errors || err.message,
+      statusCode: statusCode,
+      method: req.method,
+      url: req.originalUrl,
+      stack: err.stack,
+    });
+
+    let errorMessage = "";
+
+    if (err.name == "SequelizeValidationError") {
+      errorMessage = err.errors.map((e) => e.message).join(", ");
+      return Response.BadRequest(res, "Validation error", errorMessage);
+    } else if (err.name == "SequelizeUniqueConstraintError") {
+      errorMessage = "Data sudah tersedia";
+      return Response.Custom(res, 409, errorMessage, err.stack);
+    } else if (err.name == "SequelizeForeignKeyConstraintError") {
+      if (req.method == "DELETE") {
+        errorMessage = "Tidak dapat dihapus. Data sedang digunakan";
+      } else {
+        errorMessage = "Operasi tidak dapat dilakukan. Data sedang digunakan";
+      }
+      return Response.BadRequest(res, errorMessage, undefined);
+    } else {
+      errorMessage = err.message;
+    }
+
+    return Response.Error(res, err.stack, errorMessage);
+  }
+
   // Log error detail ke file
   logger.error({
     message: err.message,
@@ -26,22 +58,6 @@ const errorHandler = (err, req, res, next) => {
     url: req.originalUrl,
     stack: err.stack,
   });
-
-  if (err instanceof Sequelize.BaseError) {
-    // Further check for specific error types
-    let errorMessage = "";
-    if (
-      err instanceof Sequelize.ValidationError ||
-      err instanceof Sequelize.UniqueConstraintError
-    ) {
-      errorMessage = err.errors.map((e) => e.message).join(", ");
-    } else {
-      errorMessage = err.message;
-    }
-
-    return Response.Error(res, err.stack, errorMessage);
-  }
-
   return Response.Error(res, err.stack);
 };
 

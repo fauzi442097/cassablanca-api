@@ -12,8 +12,14 @@ const getAll = tryCatch(async (req, res) => {
 const getById = tryCatch(async (req, res) => {
   const { id, model_name } = req.params;
   const data = await referensiService.getDataById(id, model_name);
-  if (!data) return Response.NotFound(res, "Data not found");
+  if (!data) return Response.NotFound(res, "Data tidak ditemukan");
   return Response.Success(res, data);
+});
+
+const deleteById = tryCatch(async (req, res) => {
+  const { id, model_name, ref_name } = req.params;
+  await referensiService.deleteById(id, model_name, ref_name);
+  return Response.Success(res, null, "Data berhasil dihapus");
 });
 
 const store = tryCatch(async (req, res) => {
@@ -23,8 +29,17 @@ const store = tryCatch(async (req, res) => {
   return Response.Success(res, null, "Data berhasil disimpan");
 });
 
+const update = tryCatch(async (req, res) => {
+  const data = req.body;
+  const { ref_name, model_name, id } = req.params;
+  await referensiService.update(id, data, model_name, ref_name);
+  return Response.Success(res, null, "Data berhasil disimpan");
+});
+
 module.exports = {
   getAll,
   getById,
   store,
+  update,
+  deleteById,
 };

@@ -42,7 +42,7 @@ const updateWallet = async (walletId, data) => {
       event: `Update data address '${data.wallet_type_id}' - '${data.coin_id}'`,
       model_id: dataExisting.id,
       model_name: wallet.tableName,
-      old_valus: dataExisting,
+      old_values: dataExisting,
       new_values: walletCreated,
     };
 

@@ -63,6 +63,16 @@ const generateReferralCode = (length = 8) => {
   return referralCode;
 };
 
+const getNextId = async (model) => {
+  const data = await model.findOne({
+    order: [["id", "DESC"]],
+    limit: 1,
+  });
+
+  const nextId = data ? data.id + 1 : 1;
+  return nextId;
+};
+
 module.exports = {
   generateOtp,
   tryCatch,
@@ -71,4 +81,5 @@ module.exports = {
   toSnakeCase,
   getRequestObject,
   generateReferralCode,
+  getNextId,
 };
