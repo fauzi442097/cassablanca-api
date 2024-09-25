@@ -130,6 +130,10 @@ const generateObjectData = async (data, refName, model, id = null) => {
       formData = { id: helper.toSnakeCase(data.id).toUpperCase() };
       refTitle = "'Currency'";
       break;
+    case "chain":
+      formData = { id: helper.toSnakeCase(data.id), ...data };
+      refTitle = "'Chain'";
+      break;
     default:
       formData = data;
   }

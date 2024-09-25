@@ -5,6 +5,7 @@ const REF_MODEL = {
   "withdrawal-status": "reff_withdrawal_status",
   "bonus-status": "reff_bonus_status",
   "currency": "reff_curr",
+  "chain": "reff_chain",
 };
 
 const generateModel = (req, res, next) => {
