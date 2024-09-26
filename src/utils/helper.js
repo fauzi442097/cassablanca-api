@@ -1,5 +1,6 @@
 const db = require("../config/database");
 const { asyncLocalStorage } = require("../middleware/log-activity");
+const jwt = require("jsonwebtoken");
 
 const generateOtp = (length = 6) => {
   let otp = "";
@@ -100,6 +101,7 @@ const getRefTitle = (refName) => {
   }
   return refTitle;
 };
+
 
 module.exports = {
   generateOtp,

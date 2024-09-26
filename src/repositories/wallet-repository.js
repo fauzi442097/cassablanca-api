@@ -84,6 +84,30 @@ const deleteById = async (walletId, transaction) => {
   });
 };
 
+const getAddressRequestActivation = async () => {
+  const [results] = await db.query(`
+  select 
+    w.id,
+    w.coin_id,
+    c.curr_id,
+    rc.chain_nm,
+    rc.logo,
+    w.address,
+    w.wallet_type_id,
+    rwt.wallet_type_nm
+  from
+    wallet w
+  join reff_wallet_type rwt on
+    rwt.id = w.wallet_type_id
+  join coin c on
+    c.id = w.coin_id
+  join reff_chain rc on
+    rc.id = c.chain_id
+  where
+    w.user_id = 0`);
+  return results;
+};
+
 module.exports = {
   getAll,
   getDataById,
@@ -91,4 +115,5 @@ module.exports = {
   deleteById,
   update,
   getDataByUserId,
+  getAddressRequestActivation,
 };

@@ -18,6 +18,8 @@ const getDataById = tryCatch(async (req, res) => {
   return Response.Success(res, data);
 });
 
+
+
 module.exports = {
   getAllData,
   getDataById,

@@ -1,7 +1,7 @@
 const db = require("../config/database");
 const initModels = require("../models/init-models");
 
-const { ranking } = initModels(db);
+const { ranking, ranking_req } = initModels(db);
 
 const getAll = async (transaction) => {
   const data = await ranking.findAll(transaction);
@@ -65,6 +65,24 @@ const deleteById = async (rankingId, transaction) => {
   });
 };
 
+const getActivationReq = async () => {
+  return await ranking.findOne({
+    include: [
+      {
+        model: ranking_req,
+        as: "ranking_reqs",
+        limit: 1,
+        where: {
+          ranking_req_type_id: "activated",
+        },
+      },
+    ],
+    where: {
+      lvl: 1,
+    },
+  });
+};
+
 module.exports = {
   updateRanking,
   updateBonusRankingById,
@@ -73,4 +91,5 @@ module.exports = {
   updateRankingName,
   store,
   deleteById,
+  getActivationReq,
 };

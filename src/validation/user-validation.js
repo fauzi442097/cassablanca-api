@@ -22,15 +22,38 @@ const signUpSchema = z.object({
   full_name: z
     .string({ required_error: "Wajib diisi" })
     .min(1, "Wajib diisi")
-    .max(30),
+    .max(50),
   referal_code: z
     .string({ required_error: "Wajib diisi" })
     .min(1, "Wajib diisi")
     .max(8),
 });
 
+const confirmPaymentSchema = z.object({
+  trx_id: z
+    .string({ required_error: "Wajib diisi" })
+    .min(1, "Wajib diisi")
+    .max(255),
+  recipient_address_id: z.number({ required_error: "Wajib diisi" }).positive(),
+  user_id: z.number({ required_error: "Wajib diisi" }).positive(),
+});
+
+const registerMemberSchema = z.object({
+  email: z
+    .string({ required_error: "Wajib diisi" })
+    .min(1, "Wajib diisi")
+    .email(),
+  full_name: z
+    .string({ required_error: "Wajib diisi" })
+    .min(1, "Wajib diisi")
+    .max(50, "Wajib diisi"),
+  parent_id: z.number().positive().nullable(),
+});
+
 module.exports = {
   requestOTPValidation,
   requestVerifyOtpValidation,
   signUpSchema,
+  confirmPaymentSchema,
+  registerMemberSchema,
 };
