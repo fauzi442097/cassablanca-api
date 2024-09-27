@@ -12,6 +12,7 @@ var _reff_bonus_status = require("./reff_bonus_status");
 var _reff_chain = require("./reff_chain");
 var _reff_curr = require("./reff_curr");
 var _reff_menu = require("./reff_menu");
+var _reff_order_status = require("./reff_order_status");
 var _reff_ranking_req_type = require("./reff_ranking_req_type");
 var _reff_user_status = require("./reff_user_status");
 var _reff_wallet_type = require("./reff_wallet_type");
@@ -38,6 +39,7 @@ function initModels(sequelize) {
   var reff_chain = _reff_chain(sequelize, DataTypes);
   var reff_curr = _reff_curr(sequelize, DataTypes);
   var reff_menu = _reff_menu(sequelize, DataTypes);
+  var reff_order_status = _reff_order_status(sequelize, DataTypes);
   var reff_ranking_req_type = _reff_ranking_req_type(sequelize, DataTypes);
   var reff_user_status = _reff_user_status(sequelize, DataTypes);
   var reff_wallet_type = _reff_wallet_type(sequelize, DataTypes);
@@ -84,6 +86,8 @@ function initModels(sequelize) {
   reff_curr.hasMany(users_balance_trx, { as: "users_balance_trxes", foreignKey: "curr_id"});
   role_menu.belongsTo(reff_menu, { as: "menu", foreignKey: "menu_id"});
   reff_menu.hasMany(role_menu, { as: "role_menus", foreignKey: "menu_id"});
+  orders.belongsTo(reff_order_status, { as: "order_st", foreignKey: "order_sts_id"});
+  reff_order_status.hasMany(orders, { as: "orders", foreignKey: "order_sts_id"});
   ranking_req.belongsTo(reff_ranking_req_type, { as: "ranking_req_type", foreignKey: "ranking_req_type_id"});
   reff_ranking_req_type.hasMany(ranking_req, { as: "ranking_reqs", foreignKey: "ranking_req_type_id"});
   member.belongsTo(reff_user_status, { as: "user_status", foreignKey: "user_status_id"});
@@ -94,8 +98,6 @@ function initModels(sequelize) {
   roles.hasMany(member, { as: "members", foreignKey: "role_id"});
   role_menu.belongsTo(roles, { as: "role", foreignKey: "role_id"});
   roles.hasMany(role_menu, { as: "role_menus", foreignKey: "role_id"});
-  wallet.belongsTo(users, { as: "user", foreignKey: "user_id"});
-  users.hasMany(wallet, { as: "wallets", foreignKey: "user_id"});
   withdrawal.belongsTo(users, { as: "user_id_admin_user", foreignKey: "user_id_admin"});
   users.hasMany(withdrawal, { as: "withdrawals", foreignKey: "user_id_admin"});
 
@@ -113,6 +115,7 @@ function initModels(sequelize) {
     reff_chain,
     reff_curr,
     reff_menu,
+    reff_order_status,
     reff_ranking_req_type,
     reff_user_status,
     reff_wallet_type,

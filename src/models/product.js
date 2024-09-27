@@ -20,6 +20,7 @@ module.exports = function (sequelize, DataTypes) {
       price: {
         type: DataTypes.DECIMAL,
         allowNull: false,
+        comment: "USDT",
       },
       sharing_pct_usdt: {
         type: DataTypes.DOUBLE,

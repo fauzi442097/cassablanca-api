@@ -29,15 +29,6 @@ const signUpSchema = z.object({
     .max(8),
 });
 
-const confirmPaymentSchema = z.object({
-  trx_id: z
-    .string({ required_error: "Wajib diisi" })
-    .min(1, "Wajib diisi")
-    .max(255),
-  recipient_address_id: z.number({ required_error: "Wajib diisi" }).positive(),
-  user_id: z.number({ required_error: "Wajib diisi" }).positive(),
-});
-
 const registerMemberSchema = z.object({
   email: z
     .string({ required_error: "Wajib diisi" })
@@ -54,6 +45,5 @@ module.exports = {
   requestOTPValidation,
   requestVerifyOtpValidation,
   signUpSchema,
-  confirmPaymentSchema,
   registerMemberSchema,
 };

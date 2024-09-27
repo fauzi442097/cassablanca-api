@@ -36,29 +36,6 @@ const activationRequestMember = async () => {
   return data;
 };
 
-const confirmPaymentMember = async (data) => {
-  const member = await userRepository.getDataById(data.user_id);
-  const product = await productRepository.getDataById(1);
-  console.log(data);
-
-  const otp = generateOtp();
-  await sendEmailOTP(otp, member.email);
-
-  const orderDTO = {
-    member_id: data.user_id,
-    product_id: product.id,
-    price: product.price,
-    qty: 1000,
-    total_price: 12,
-    chain_trx_id: data.trx_id,
-    address: data.recipient_address_id,
-    coin_id: 123,
-    otp: otp,
-    expired_otp,
-  };
-  return withTransaction(async (transaction) => {});
-};
-
 const registerMember = async (data, userLogin) => {
   const memberByEmail = await memberRepository.getDataByEmail(data.email);
   if (memberByEmail)
@@ -86,7 +63,7 @@ const registerMember = async (data, userLogin) => {
       model_name: member.tableName,
       new_values: newMember,
     };
-    await auditService.store(dataAudit);
+    await auditService.store(dataAudit, transaction);
   });
 };
 
@@ -119,7 +96,6 @@ const getAllMember = async (param) => {
 
 module.exports = {
   activationRequestMember,
-  confirmPaymentMember,
   registerMember,
   getDownlineMember,
   getAllMember,

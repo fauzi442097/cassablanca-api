@@ -22,12 +22,6 @@ const activationRequest = tryCatch(async (req, res) => {
   return Response.Success(res, data);
 });
 
-const confirmPayment = tryCatch(async (req, res) => {
-  const data = req.body;
-  const otp = await memberService.confirmPaymentMember(data);
-  return Response.Success(res, { otp });
-});
-
 const registerMember = tryCatch(async (req, res) => {
   const data = req.body;
   await memberService.registerMember(data, req.user);
@@ -36,7 +30,6 @@ const registerMember = tryCatch(async (req, res) => {
 
 module.exports = {
   activationRequest,
-  confirmPayment,
   registerMember,
   getDownlineMember,
   getAllMember,

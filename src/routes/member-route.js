@@ -1,12 +1,12 @@
 const exporess = require("express");
 const memberController = require("../controllers/member-controller");
+const orderController = require("../controllers/order-controller");
+
 const validateRequest = require("../middleware/validate-request");
-const {
-  confirmPaymentSchema,
-  registerMemberSchema,
-} = require("../validation/user-validation");
+const { registerMemberSchema } = require("../validation/user-validation");
 const authorize = require("../middleware/authorize");
 const { ROLE } = require("../utils/ref-value");
+const { confirmPaymentSchema } = require("../validation/order-validation");
 
 const router = exporess.Router();
 
@@ -19,7 +19,7 @@ router.post(
   "/payment/confirm",
   authorize([ROLE.MEMBER]),
   validateRequest(confirmPaymentSchema),
-  memberController.confirmPayment
+  orderController.confirmPayment
 );
 
 router.get(
