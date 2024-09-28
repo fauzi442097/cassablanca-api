@@ -93,6 +93,36 @@ const deleteWalletById = async (walletId) => {
   });
 };
 
+const createWalletMember = async (memberId, transaction, userLoginId) => {
+  // Create Wallet
+  const walletDeposit = [
+    {
+      coin_id: "USDT_tron",
+      user_id: memberId,
+      wallet_type_id: "deposit",
+    },
+    {
+      coin_id: "USDT_tron",
+      user_id: memberId,
+      wallet_type_id: "withdrawal",
+    },
+  ];
+  const walletCreated = await walletRepository.storeBulk(
+    walletDeposit,
+    transaction
+  );
+
+  // Log Audit
+  dataAudit = {
+    user_id: userLoginId || memberId,
+    event: "Tambah wallet member",
+    model_id: memberId,
+    model_name: wallet.tableName,
+    new_values: walletCreated,
+  };
+  await auditService.store(dataAudit, transaction);
+};
+
 module.exports = {
   getAllWallets,
   getWalletById,
@@ -101,4 +131,5 @@ module.exports = {
   deleteWalletById,
   getWalletByUser,
   getWalletAdmin,
+  createWalletMember,
 };

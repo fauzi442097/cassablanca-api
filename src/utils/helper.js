@@ -102,6 +102,17 @@ const getRefTitle = (refName) => {
   return refTitle;
 };
 
+const buildTree = (members, parentId = null) => {
+  const tree = [];
+  for (const member of members) {
+    if (member.member_id_parent === parentId) {
+      // Recursively find children
+      member.downlines = buildTree(members, member.id);
+      tree.push(member);
+    }
+  }
+  return tree;
+};
 
 module.exports = {
   generateOtp,
@@ -113,4 +124,5 @@ module.exports = {
   generateReferralCode,
   getNextId,
   getRefTitle,
+  buildTree,
 };

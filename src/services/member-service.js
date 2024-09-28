@@ -4,6 +4,7 @@ const {
   withTransaction,
   generateOtp,
   generateReferralCode,
+  buildTree,
 } = require("../utils/helper");
 const { STATUS_USER, ROLE, RANKING } = require("../utils/ref-value");
 
@@ -17,6 +18,7 @@ const bonusRepository = require("../repositories/bonus-repository");
 const userBallanceRepository = require("../repositories/user-ballance-repository");
 
 const auditService = require("../services/audit-service");
+const walletService = require("../services/wallet-service");
 
 const initModels = require("../models/init-models");
 const ResponseError = require("../utils/response-error");
@@ -40,7 +42,7 @@ const activationRequestMember = async () => {
   return data;
 };
 
-const registerMember = async (data, userLogin) => {
+const registerMember = async (data, userId) => {
   const memberByEmail = await memberRepository.getDataByEmail(data.email);
   if (memberByEmail)
     throw new ResponseError(
@@ -59,15 +61,17 @@ const registerMember = async (data, userLogin) => {
 
   return withTransaction(async (transaction) => {
     const newMember = await memberRepository.store(memberDTO, transaction);
+
     // Log Audit
     let dataAudit = {
-      user_id: null,
+      user_id: newMember.id,
       event: "Registrasi member",
       model_id: newMember.id,
       model_name: member.tableName,
       new_values: newMember,
     };
     await auditService.store(dataAudit, transaction);
+    await walletService.createWalletMember(newMember.id, transaction, userId);
   });
 };
 
@@ -370,6 +374,42 @@ const rejectVerificationMember = async (memberId, userLoginId) => {
   });
 };
 
+const getMemberTree = async (parentId) => {
+  const data = await memberRepository.getAllWithoutPaging();
+  const membersJSON = data.map((member) => member.toJSON());
+  let memberTree = buildTree(membersJSON);
+
+  if (parentId) {
+    memberTree = memberTree.filter((item) => item.id == parentId);
+  }
+  return memberTree;
+};
+
+const blockMember = async (memberId, userLoginId) => {
+  const currentMember = await memberRepository.getDataById(memberId);
+  if (!currentMember)
+    throw new ResponseError("Data Member tidak ditemukan", 404);
+
+  return withTransaction(async (transaction) => {
+    const blockedUser = await memberRepository.updateStatusMember(
+      memberId,
+      { user_status_id: STATUS_USER.BLOCKED },
+      transaction
+    );
+
+    // Log audit order
+    let dataAudit = {
+      user_id: userLoginId,
+      event: `Block member ${currentMember.fullname}`,
+      model_id: memberId,
+      model_name: member.tableName,
+      old_values: currentMember,
+      new_values: blockedUser,
+    };
+    await auditService.store(dataAudit, transaction);
+  });
+};
+
 module.exports = {
   activationRequestMember,
   registerMember,
@@ -377,4 +417,6 @@ module.exports = {
   getMembers,
   verificationMember,
   rejectVerificationMember,
+  getMemberTree,
+  blockMember,
 };

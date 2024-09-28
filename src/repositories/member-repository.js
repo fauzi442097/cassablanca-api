@@ -4,6 +4,26 @@ const initModels = require("../models/init-models");
 
 const { member, reff_user_status } = initModels(db);
 
+const getAllWithoutPaging = async (parentId) => {
+  let whereConditions = {};
+
+  if (parentId) {
+    whereConditions[Op.or] = [{ id: parentId }, { member_id_parent: parentId }];
+  }
+  return await member.findAll({
+    attributes: {
+      exclude: [
+        "password",
+        "wrong_password_cnt",
+        "otp",
+        "expired_otp",
+        "role_id",
+      ],
+    },
+    where: whereConditions,
+  });
+};
+
 const getAll = async (param) => {
   const { page, size, status, search } = param;
   let offset;
@@ -271,7 +291,10 @@ const getTotalDirectDownline = async (parentMemberId, status = "all") => {
   });
 };
 
-const getTotalDownlineByParentAndRankingId = async (memberIdParent, rankingId) => {
+const getTotalDownlineByParentAndRankingId = async (
+  memberIdParent,
+  rankingId
+) => {
   return await member.count({
     where: {
       member_id_parent: memberIdParent,
@@ -292,4 +315,5 @@ module.exports = {
   updateStatusMember,
   getTotalDirectDownline,
   getTotalDownlineByParentAndRankingId,
+  getAllWithoutPaging,
 };

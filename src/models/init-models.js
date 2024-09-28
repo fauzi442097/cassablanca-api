@@ -73,6 +73,10 @@ function initModels(sequelize) {
   orders.belongsTo(member, { as: "member", foreignKey: "member_id" });
   member.hasMany(orders, { as: "orders", foreignKey: "member_id" });
   member.belongsTo(ranking, { as: "ranking", foreignKey: "ranking_id" });
+
+  member.hasMany(member, { as: "downlines", foreignKey: "member_id_parent" });
+  member.belongsTo(member, { as: "upline", foreignKey: "member_id_parent" });
+
   bonus.belongsTo(orders, { as: "order", foreignKey: "order_id" });
   orders.hasMany(bonus, { as: "bonuses", foreignKey: "order_id" });
   orders.belongsTo(product, { as: "product", foreignKey: "product_id" });

@@ -24,7 +24,7 @@ const activationRequest = tryCatch(async (req, res) => {
 
 const registerMember = tryCatch(async (req, res) => {
   const data = req.body;
-  await memberService.registerMember(data, req.user);
+  await memberService.registerMember(data, req.user.id);
   return Response.Success(res, null, "Registrasi member sukses");
 });
 
@@ -43,6 +43,18 @@ const rejectVerificationMember = tryCatch(async (req, res) => {
   return Response.Success(res, null, "Berhasil direject");
 });
 
+const memberTree = tryCatch(async (req, res) => {
+  const { parentId } = req.params;
+  const data = await memberService.getMemberTree(parentId);
+  return Response.Success(res, data);
+});
+
+const blockMember = tryCatch(async (req, res) => {
+  const { memberId } = req.params;
+  await memberService.blockMember(memberId, req.user.id);
+  return Response.Success(res, null, "Member berhasil diblock");
+});
+
 module.exports = {
   activationRequest,
   registerMember,
@@ -50,4 +62,6 @@ module.exports = {
   getMembers,
   verificationMember,
   rejectVerificationMember,
+  memberTree,
+  blockMember,
 };

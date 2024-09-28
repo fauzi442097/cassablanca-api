@@ -28,6 +28,9 @@ router.get(
   memberController.getMembers
 );
 
+router.get("/tree", memberController.memberTree);
+router.get("/tree/:parentId", memberController.memberTree);
+
 router.get(
   "/:memberId/downline",
   authorize([ROLE.ADMIN_CASSABLANCA, ROLE.MEMBER]),
@@ -49,6 +52,11 @@ router.post(
   "/:memberId/reject-verification",
   authorize([ROLE.ADMIN_CASSABLANCA]),
   memberController.rejectVerificationMember
+);
+router.post(
+  "/:memberId/block",
+  authorize([ROLE.ADMIN_CASSABLANCA]),
+  memberController.blockMember
 );
 
 module.exports = router;

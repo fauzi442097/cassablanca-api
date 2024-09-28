@@ -10,6 +10,7 @@ const db = require("../config/database");
 const initModels = require("../models/init-models");
 const { users, member } = initModels(db);
 const auditService = require("../services/audit-service");
+const walletService = require("../services/wallet-service");
 
 const userRepository = require("../repositories/user-repository");
 const memberRepository = require("../repositories/member-repository");
@@ -130,7 +131,7 @@ const registerMemberByReferalCode = async (data) => {
 
     // Log Audit
     let dataAudit = {
-      user_id: null,
+      user_id: newMember.id,
       event: "Registrasi member dengan referral code",
       model_id: newMember.id,
       model_name: member.tableName,
@@ -138,6 +139,7 @@ const registerMemberByReferalCode = async (data) => {
     };
 
     await auditService.store(dataAudit);
+    await walletService.createWalletMember(newMember.id, transaction);
   });
 };
 

@@ -64,6 +64,13 @@ const store = async (data, transaction) => {
   });
 };
 
+const storeBulk = async (data, transaction) => {
+  return await wallet.bulkCreate(data, {
+  returning: true,
+    transaction,
+  });
+};
+
 const update = async (walletId, data, transaction) => {
   return await wallet.update(data, {
     where: {
@@ -136,4 +143,5 @@ module.exports = {
   getDataByUserId,
   getAddressRequestActivation,
   getWalletAdminByType,
+  storeBulk,
 };
