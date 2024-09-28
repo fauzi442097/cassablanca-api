@@ -12,11 +12,14 @@ const walletRepository = require("../repositories/wallet-repository");
 const userRepository = require("../repositories/user-repository");
 const memberRepository = require("../repositories/member-repository");
 const productRepository = require("../repositories/product-repository");
+const orderRepository = require("../repositories/order-respository");
+const userBallanceRepository = require("../repositories/user-ballance-repository");
+
 const auditService = require("../services/audit-service");
 
 const initModels = require("../models/init-models");
 const ResponseError = require("../utils/response-error");
-const { member } = initModels(db);
+const { member, orders } = initModels(db);
 
 const activationRequestMember = async () => {
   const ranking = await rankingRepository.getActivationReq();
@@ -89,14 +92,97 @@ const getDownlineMember = async (memberId, param) => {
   return result;
 };
 
-const getAllMember = async (param) => {
+const getMembers = async (param) => {
   const result = await memberRepository.getAll(param);
   return result;
+};
+
+const verificationMember = async (memberId, userLoginId) => {
+  const memId = Number(memberId);
+  if (!Number.isInteger(memId) || memId <= 0) {
+    throw new ResponseError("Parameter harus angka", 404);
+  }
+
+  const currentMember = await memberRepository.getDataById(memberId);
+  if (!currentMember)
+    throw new ResponseError("Data Member tidak ditemukan", 404);
+
+  if (currentMember.user_status_id != STATUS_USER.INACTIVE)
+    throw new ResponseError(
+      "Aktivasi tidak diizinkan. Status member tidak dalam keadaan pending",
+      400
+    );
+
+  const orderPending = await orderRepository.getOrderPendingByMemberId(
+    memberId
+  );
+  if (!orderPending) {
+    throw new ResponseError("Member sudah dilakukan verifikasi", 400);
+  }
+
+  const dataApprove = {
+    paid_at: new Date(),
+    order_sts_id: "done",
+  };
+
+  const dataStatusMember = {
+    ranking_id: "silver",
+  };
+
+  return withTransaction(async (transaction) => {
+    // const orderUpdated = await orderRepository.approveOrderById(
+    //   orderPending.id,
+    //   dataApprove,
+    //   transaction
+    // );
+
+    // // Log audit order
+    // let dataAudit = {
+    //   user_id: userLoginId,
+    //   event: `Verifikasi pembayaran member ${currentMember.fullname}`,
+    //   model_id: orderPending.id,
+    //   model_name: orders.tableName,
+    //   old_values: orderPending,
+    //   new_values: orderUpdated,
+    // };
+    // await auditService.store(dataAudit, transaction);
+
+    // const memberUpdated = await memberRepository.updateStatusMember(
+    //   memberId,
+    //   dataStatusMember,
+    //   transaction
+    // );
+
+    // // Log audit member
+    // dataAudit = {
+    //   user_id: userLoginId,
+    //   event: `Update ranking member ${currentMember.fullname}`,
+    //   model_id: currentMember.id,
+    //   model_name: member.tableName,
+    //   old_values: currentMember,
+    //   new_values: memberUpdated,
+    // };
+    // await auditService.store(dataAudit, transaction);
+
+    const dataBallance = {
+      user_id: currentMember.id,
+      curr_id: "ORE",
+      amount: orderPending.qty,
+      dbcr: 1,
+      description: "Penambahan saldo ORE",
+    };
+
+    const ballanceCreated = await userBallanceRepository.storeBallance(
+      dataBallance,
+      transaction
+    );
+  });
 };
 
 module.exports = {
   activationRequestMember,
   registerMember,
   getDownlineMember,
-  getAllMember,
+  getMembers,
+  verificationMember,
 };

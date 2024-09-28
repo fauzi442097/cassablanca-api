@@ -1,18 +1,100 @@
+const { Op } = require("sequelize");
 const db = require("../config/database");
 const initModels = require("../models/init-models");
 
-const { member } = initModels(db);
+const { member, reff_user_status } = initModels(db);
 
-// const getAll = async (param) => {
-//   if ( param ) {
+const getAll = async (param) => {
+  const { page, size, status, search } = param;
+  let offset;
+  let limitOffset;
+  let whereClause = {};
 
-//   }
-// }
+  if (status && status != "") {
+    whereClause.user_status_id = status;
+  }
+
+  if (search) {
+    whereClause[Op.or] = [
+      { fullname: { [Op.iLike]: `%${search}%` } },
+      { email: { [Op.iLike]: `%${search}%` } },
+    ];
+  }
+
+  if (page && size) {
+    offset = (page - 1) * size;
+    limitOffset = {
+      limit: size,
+      offset: offset,
+    };
+  }
+
+  if (page && size) {
+    // With Pagination
+    const result = await member.findAndCountAll({
+      attributes: {
+        exclude: ["password", "wrong_password_cnt", "otp", "expired_otp"],
+      },
+      where: whereClause || undefined,
+      ...limitOffset,
+      include: [
+        {
+          model: reff_user_status,
+          as: "user_status",
+        },
+        // {
+        //   model: member,
+        //   as: "parent",
+        // },
+        // {
+        //   model: member,
+        //   as: "children",
+        // },
+      ],
+    });
+
+    return {
+      items: result.rows,
+      pagination: {
+        total_records: result.count,
+        total_pages: Math.ceil(result.count / size),
+        current_page: page,
+      },
+    };
+  }
+
+  // Without pagination
+  const result = await member.findAll({
+    where: whereClause || undefined,
+    include: [
+      {
+        model: reff_user_status,
+        as: "user_status",
+      },
+    ],
+  });
+
+  return result;
+};
 
 const getDataByEmail = async (email) => {
   return await member.findOne({
     where: {
       email: email,
+    },
+  });
+};
+
+const getDataByStatusId = async (status) => {
+  return await member.findOne({
+    include: [
+      {
+        model: reff_user_status,
+        as: "user_status",
+      },
+    ],
+    where: {
+      user_status_id: status,
     },
   });
 };
@@ -165,6 +247,16 @@ const getTotalDownlineByMemberParentId = async (memberId) => {
   return total;
 };
 
+const updateStatusMember = async (memberId, data, transaction) => {
+  return await member.update(data, {
+    where: {
+      id: memberId,
+    },
+    returning: true,
+    transaction,
+  });
+};
+
 module.exports = {
   getDataByEmail,
   getDataByReferalCode,
@@ -172,4 +264,7 @@ module.exports = {
   getDataById,
   getDataByMemberParentId,
   getTotalDownlineByMemberParentId,
+  getDataByStatusId,
+  getAll,
+  updateStatusMember,
 };

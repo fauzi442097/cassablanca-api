@@ -1,10 +1,10 @@
-const exporess = require("express");
+const express = require("express");
 
 const referensiController = require("../controllers/referensi-controller");
 const generateModel = require("../middleware/generate-model-ref");
 const validateRef = require("../middleware/validate-ref");
 
-const router = exporess.Router();
+const router = express.Router();
 router.get("/:ref_name", generateModel, referensiController.getAll);
 router.get("/:ref_name/:id", generateModel, referensiController.getById);
 router.delete("/:ref_name/:id", generateModel, referensiController.deleteById);

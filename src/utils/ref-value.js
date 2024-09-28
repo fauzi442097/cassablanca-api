@@ -10,6 +10,7 @@ const ROLE = {
   MEMBER: 2,
 };
 
+
 module.exports = {
   STATUS_USER,
   ROLE,

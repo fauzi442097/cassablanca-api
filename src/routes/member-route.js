@@ -1,4 +1,4 @@
-const exporess = require("express");
+const express = require("express");
 const memberController = require("../controllers/member-controller");
 const orderController = require("../controllers/order-controller");
 
@@ -8,7 +8,7 @@ const authorize = require("../middleware/authorize");
 const { ROLE } = require("../utils/ref-value");
 const { confirmPaymentSchema } = require("../validation/order-validation");
 
-const router = exporess.Router();
+const router = express.Router();
 
 router.get(
   "/activation/request",
@@ -25,7 +25,7 @@ router.post(
 router.get(
   "/",
   authorize([ROLE.ADMIN_CASSABLANCA]),
-  memberController.getAllMember
+  memberController.getMembers
 );
 
 router.get(
@@ -37,6 +37,12 @@ router.post(
   "/register",
   validateRequest(registerMemberSchema),
   memberController.registerMember
+);
+
+router.post(
+  "/:memberId/verification",
+  authorize([ROLE.ADMIN_CASSABLANCA]),
+  memberController.verificationMember
 );
 
 module.exports = router;

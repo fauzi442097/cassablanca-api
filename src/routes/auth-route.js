@@ -1,4 +1,4 @@
-const exporess = require("express");
+const express = require("express");
 
 const authController = require("../controllers/auth-controller");
 const validateRequest = require("../middleware/validate-request");
@@ -8,7 +8,7 @@ const {
   signUpSchema,
 } = require("../validation/user-validation");
 
-const router = exporess.Router();
+const router = express.Router();
 router.post(
   "/request-otp",
   validateRequest(requestOTPValidation),
