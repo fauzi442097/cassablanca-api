@@ -83,6 +83,27 @@ const getActivationReq = async () => {
   });
 };
 
+const getDataByLevel = async (level) => {
+  return await ranking.findOne({
+    include: [
+      {
+        model: ranking_req,
+        as: "ranking_reqs",
+      },
+    ],
+    where: {
+      lvl: level,
+    },
+  });
+};
+
+const getTopLevel = async () => {
+  return await ranking.findOne({
+    order: [["lvl", "DESC"]],
+    limit: 1,
+  });
+};
+
 module.exports = {
   updateRanking,
   updateBonusRankingById,
@@ -92,4 +113,6 @@ module.exports = {
   store,
   deleteById,
   getActivationReq,
+  getDataByLevel,
+  getTopLevel,
 };

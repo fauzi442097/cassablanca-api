@@ -1,5 +1,7 @@
+const walletRepository = require("../repositories/wallet-repository");
+
 const getWalletAdmin = async () => {
-  return [];
+  return await walletRepository.getDataByUserId(0);
 };
 
 module.exports = {

@@ -45,4 +45,10 @@ router.post(
   memberController.verificationMember
 );
 
+router.post(
+  "/:memberId/reject-verification",
+  authorize([ROLE.ADMIN_CASSABLANCA]),
+  memberController.rejectVerificationMember
+);
+
 module.exports = router;

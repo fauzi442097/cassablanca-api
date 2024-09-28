@@ -30,8 +30,17 @@ const registerMember = tryCatch(async (req, res) => {
 
 const verificationMember = tryCatch(async (req, res) => {
   const { memberId } = req.params;
-  await memberService.verificationMember(memberId, req.user.id);
+  const data = await memberService.verificationMember(memberId, req.user.id);
   return Response.Success(res, null, "Aktivasi member berhasil");
+});
+
+const rejectVerificationMember = tryCatch(async (req, res) => {
+  const { memberId } = req.params;
+  const data = await memberService.rejectVerificationMember(
+    memberId,
+    req.user.id
+  );
+  return Response.Success(res, null, "Berhasil direject");
 });
 
 module.exports = {
@@ -40,4 +49,5 @@ module.exports = {
   getDownlineMember,
   getMembers,
   verificationMember,
+  rejectVerificationMember,
 };

@@ -101,7 +101,7 @@ const generateObjectData = async (data, refName, model, id = null) => {
   switch (refName) {
     case "ranking-req":
       id = helper.toSnakeCase(data.ranking_req_type_nm);
-      formData = { id, ...data };
+      formData = { ...data };
       break;
     case "user-status":
       id = id || (await helper.getNextId(model));

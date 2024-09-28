@@ -2,7 +2,7 @@ const { Op } = require("sequelize");
 const db = require("../config/database");
 const initModels = require("../models/init-models");
 
-const { orders } = initModels(db);
+const { orders, product } = initModels(db);
 
 const getOrderPendingByMemberAndTrxId = async (memberId, transactionId) => {
   return await orders.findOne({
@@ -21,6 +21,12 @@ const getOrderPendingByMemberId = async (memberId) => {
     where: {
       [Op.and]: [{ member_id: memberId }, { order_sts_id: "waiting_approve" }],
     },
+    include: [
+      {
+        model: product,
+        as: "product",
+      },
+    ],
   });
 };
 

@@ -99,8 +99,8 @@ const getDataByStatusId = async (status) => {
   });
 };
 
-const getDataById = async (memberId) => {
-  return await member.findByPk(memberId);
+const getDataById = async (memberId, options) => {
+  return await member.findByPk(memberId, options);
 };
 
 const getDataByReferalCode = async (refCode) => {
@@ -244,7 +244,7 @@ const getTotalDownlineByMemberParentId = async (memberId) => {
     replacements: { member_id: memberId },
   });
 
-  return total;
+  return parseInt(total);
 };
 
 const updateStatusMember = async (memberId, data, transaction) => {
@@ -254,6 +254,29 @@ const updateStatusMember = async (memberId, data, transaction) => {
     },
     returning: true,
     transaction,
+  });
+};
+
+const getTotalDirectDownline = async (parentMemberId, status = "all") => {
+  const whereClause = {
+    member_id_parent: parentMemberId,
+  };
+
+  if (status != "all") {
+    whereClause.user_status_id = status;
+  }
+
+  return await member.count({
+    where: whereClause,
+  });
+};
+
+const getTotalDownlineByParentAndRankingId = async (memberIdParent, rankingId) => {
+  return await member.count({
+    where: {
+      member_id_parent: memberIdParent,
+      ranking_id: rankingId,
+    },
   });
 };
 
@@ -267,4 +290,6 @@ module.exports = {
   getDataByStatusId,
   getAll,
   updateStatusMember,
+  getTotalDirectDownline,
+  getTotalDownlineByParentAndRankingId,
 };
