@@ -3,11 +3,13 @@ const express = require("express");
 const rankingController = require("../controllers/config/ranking-controller");
 const productController = require("../controllers/config/product-controller");
 const walletController = require("../controllers/config/wallet-controller");
+const coinController = require("../controllers/config/coin-controller");
 
 const validateRequest = require("../middleware/validate-request");
 const { levelSchema } = require("../validation/ranking-validation");
 const { productSchema } = require("../validation/product-validation");
 const { walletSchema } = require("../validation/wallet-validation");
+const { coinSchema } = require("../validation/coin-validation");
 
 const router = express.Router();
 
@@ -57,3 +59,14 @@ router.put(
   validateRequest(walletSchema),
   walletController.updateWalletById
 );
+
+// COIN
+router.get("/coin", coinController.getCoins);
+router.get("/coin/:coinId", coinController.getSingleCoin);
+router.post("/coin", validateRequest(coinSchema), coinController.storeCoin);
+router.put(
+  "/coin/:coinId",
+  validateRequest(coinSchema),
+  coinController.updateCoin
+);
+router.delete("/coin/:coinId", coinController.deleteCoin);

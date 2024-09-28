@@ -108,6 +108,25 @@ const getAddressRequestActivation = async () => {
   return results;
 };
 
+const getWalletAdminByType = async (type) => {
+  return await wallet.findOne({
+    include: [
+      {
+        model: reff_wallet_type,
+        as: "wallet_type",
+      },
+      {
+        model: coin,
+        as: "coin",
+      },
+    ],
+    where: {
+      user_id: 0,
+      wallet_type_id: type,
+    },
+  });
+};
+
 module.exports = {
   getAll,
   getDataById,
@@ -116,4 +135,5 @@ module.exports = {
   update,
   getDataByUserId,
   getAddressRequestActivation,
+  getWalletAdminByType,
 };

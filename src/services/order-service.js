@@ -44,7 +44,7 @@ const confirmPaymentMember = async (data) => {
     qty: data.qty,
     total_price: total,
     chain_trx_id: data.transaction_id,
-    address: data.address_wallet_id,
+    address: wallet.address,
     coin_id: wallet.coin_id,
     order_sts_id: "waiting_approve",
   };
