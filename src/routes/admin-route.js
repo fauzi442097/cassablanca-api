@@ -37,5 +37,10 @@ router.get(
   authorize([ROLE.ADMIN_CONTINENTAL]),
   adminController.withdrawalMember
 );
+router.post(
+  "/withdrawal/:withdrawalId/reject",
+  authorize([ROLE.ADMIN_CONTINENTAL]),
+  adminController.rejectWithdrawal
+);
 
 module.exports = router;

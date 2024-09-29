@@ -76,8 +76,29 @@ const getAll = async (params) => {
   return response;
 };
 
+const getDataById = async (id) => {
+  return await withdrawal.findByPk(id);
+};
+
+const updateStatusWithdrawal = async (id, status, transaction) => {
+  return await withdrawal.update(
+    {
+      withdrawal_status_id: status,
+    },
+    {
+      where: {
+        id: id,
+      },
+      returning: true,
+      transaction,
+    }
+  );
+};
+
 module.exports = {
   store,
   getDataByUserIdAndStatus,
+  updateStatusWithdrawal,
+  getDataById,
   getAll,
 };

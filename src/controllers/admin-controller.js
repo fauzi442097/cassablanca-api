@@ -33,10 +33,17 @@ const withdrawalMember = async (req, res) => {
   return Response.Success(res, data);
 };
 
+const rejectWithdrawal = tryCatch(async (req, res) => {
+  const { withdrawalId } = req.params;
+  await adminService.rejectWithdrawalMember(withdrawalId, req.user.id);
+  return Response.Success(res, null, "Berhasil direject");
+});
+
 module.exports = {
   walletAdmin,
   bonusMember,
   distributeBonus,
   historyVerification,
   withdrawalMember,
+  rejectWithdrawal,
 };

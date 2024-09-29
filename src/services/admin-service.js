@@ -10,8 +10,9 @@ const auditService = require("../services/audit-service");
 const { withTransaction } = require("../utils/helper");
 const initModels = require("../models/init-models");
 const db = require("../config/database");
+const ResponseError = require("../utils/response-error");
 
-const { users_balance_trx } = initModels(db);
+const { users_balance_trx, withdrawal } = initModels(db);
 
 const getWalletAdmin = async () => {
   const depositWallet = await walletRepository.getWalletAdminByType("deposit");
@@ -111,10 +112,34 @@ const getAllWithdrawalMember = async (queryParams) => {
   return await withdrawalRepository.getAll(queryParams);
 };
 
+const rejectWithdrawalMember = async (withdrawalId, userLoginId) => {
+  const witdrawalMember = await withdrawalRepository.getDataById(withdrawalId);
+  if (!witdrawalMember) throw new ResponseError("Data tidak ditemukan", 404);
+
+  return withTransaction(async (transaction) => {
+    const dataUpdated = await withdrawalRepository.updateStatusWithdrawal(
+      withdrawalId,
+      "reject",
+      transaction
+    );
+
+    const auditDTO = {
+      user_id: userLoginId,
+      event: `Reject withdrawal member`,
+      model_id: withdrawalId,
+      model_name: withdrawal.tableName,
+      old_values: witdrawalMember,
+      new_values: dataUpdated,
+    };
+    await auditService.store(auditDTO, transaction);
+  });
+};
+
 module.exports = {
   getWalletAdmin,
   getBonusMember,
   distributBonusMember,
   historyVerification,
   getAllWithdrawalMember,
+  rejectWithdrawalMember,
 };
