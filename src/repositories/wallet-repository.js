@@ -66,7 +66,7 @@ const store = async (data, transaction) => {
 
 const storeBulk = async (data, transaction) => {
   return await wallet.bulkCreate(data, {
-  returning: true,
+    returning: true,
     transaction,
   });
 };
@@ -134,6 +134,21 @@ const getWalletAdminByType = async (type) => {
   });
 };
 
+const getWalletByUserIdAndType = async (userId, type) => {
+  return await wallet.findOne({
+    include: [
+      {
+        model: coin,
+        as: "coin",
+      },
+    ],
+    where: {
+      user_id: userId,
+      wallet_type_id: type,
+    },
+  });
+};
+
 module.exports = {
   getAll,
   getDataById,
@@ -144,4 +159,5 @@ module.exports = {
   getAddressRequestActivation,
   getWalletAdminByType,
   storeBulk,
+  getWalletByUserIdAndType,
 };

@@ -28,9 +28,15 @@ const historyVerification = async (req, res) => {
   return Response.Success(res, data);
 };
 
+const withdrawalMember = async (req, res) => {
+  const data = await adminService.getAllWithdrawalMember(req.query);
+  return Response.Success(res, data);
+};
+
 module.exports = {
   walletAdmin,
   bonusMember,
   distributeBonus,
   historyVerification,
+  withdrawalMember,
 };

@@ -3,6 +3,7 @@ const memberRepository = require("../repositories/member-repository");
 const bonusRepository = require("../repositories/bonus-repository");
 const userBallanceRepository = require("../repositories/user-ballance-repository");
 const orderRepository = require("../repositories/order-respository");
+const withdrawalRepository = require("../repositories/withdrawal-repository");
 
 const auditService = require("../services/audit-service");
 
@@ -106,9 +107,14 @@ const historyVerification = async (filter) => {
   return await orderRepository.getHistoryOrder(filter);
 };
 
+const getAllWithdrawalMember = async (queryParams) => {
+  return await withdrawalRepository.getAll(queryParams);
+};
+
 module.exports = {
   getWalletAdmin,
   getBonusMember,
   distributBonusMember,
   historyVerification,
+  getAllWithdrawalMember,
 };

@@ -160,6 +160,14 @@ function initModels(sequelize) {
     foreignKey: "user_id_admin",
   });
   users.hasMany(withdrawal, { as: "withdrawals", foreignKey: "user_id_admin" });
+  withdrawal.belongsTo(users, {
+    as: "member",
+    foreignKey: "user_id",
+  });
+  withdrawal.belongsTo(reff_withdrawal_status, {
+    as: "withdrawal_status",
+    foreignKey: "withdrawal_status_id",
+  });
 
   // Define self-referential association
   member.belongsTo(member, { as: "parent", foreignKey: "member_id_parent" });

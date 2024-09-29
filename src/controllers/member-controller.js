@@ -55,6 +55,19 @@ const blockMember = tryCatch(async (req, res) => {
   return Response.Success(res, null, "Member berhasil diblock");
 });
 
+const getWalletMember = async (req, res) => {
+  const { memberId } = req.params;
+  const data = await memberService.getWalletMember(memberId);
+  return Response.Success(res, data);
+};
+
+const requestWithdrawal = tryCatch(async (req, res) => {
+  let data = req.body;
+  data.user_id = req.user.id;
+  await memberService.requestWithdrawalMember(data);
+  return Response.Success(res, null, "Request withdrawal sukses");
+});
+
 module.exports = {
   activationRequest,
   registerMember,
@@ -64,4 +77,6 @@ module.exports = {
   rejectVerificationMember,
   memberTree,
   blockMember,
+  getWalletMember,
+  requestWithdrawal,
 };

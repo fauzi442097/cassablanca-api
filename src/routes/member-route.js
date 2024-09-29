@@ -7,6 +7,7 @@ const { registerMemberSchema } = require("../validation/user-validation");
 const authorize = require("../middleware/authorize");
 const { ROLE } = require("../utils/ref-value");
 const { confirmPaymentSchema } = require("../validation/order-validation");
+const { withdrawalSchema } = require("../validation/member-validation");
 
 const router = express.Router();
 
@@ -26,6 +27,19 @@ router.get(
   "/",
   authorize([ROLE.ADMIN_CASSABLANCA]),
   memberController.getMembers
+);
+
+router.get(
+  "/:memberId/wallet",
+  authorize([ROLE.MEMBER]),
+  memberController.getWalletMember
+);
+
+router.post(
+  "/:memberId/withdrawal",
+  authorize([ROLE.MEMBER]),
+  validateRequest(withdrawalSchema),
+  memberController.requestWithdrawal
 );
 
 router.get("/tree", memberController.memberTree);

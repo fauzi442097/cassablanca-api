@@ -32,4 +32,10 @@ router.get(
   adminController.historyVerification
 );
 
+router.get(
+  "/withdrawal",
+  authorize([ROLE.ADMIN_CONTINENTAL]),
+  adminController.withdrawalMember
+);
+
 module.exports = router;

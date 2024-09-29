@@ -16,13 +16,14 @@ const productRepository = require("../repositories/product-repository");
 const orderRepository = require("../repositories/order-respository");
 const bonusRepository = require("../repositories/bonus-repository");
 const userBallanceRepository = require("../repositories/user-ballance-repository");
+const withdrawalRepository = require("../repositories/withdrawal-repository");
 
 const auditService = require("../services/audit-service");
 const walletService = require("../services/wallet-service");
 
 const initModels = require("../models/init-models");
 const ResponseError = require("../utils/response-error");
-const { member, orders, ranking, ranking_req } = initModels(db);
+const { member, orders, ranking, ranking_req, withdrawal } = initModels(db);
 
 const activationRequestMember = async () => {
   const ranking = await rankingRepository.getActivationReq();
@@ -244,7 +245,7 @@ const calculateBonus = async (memberIdParent, order, transaction) => {
       parentMember.id,
       STATUS_USER.ACTIVE
     );
-    
+
   const dirrectReferral = await memberRepository.getTotalDirectDownline(
     parentMember.id,
     STATUS_USER.ACTIVE
@@ -399,6 +400,64 @@ const blockMember = async (memberId, userLoginId) => {
   });
 };
 
+const getWalletMember = async (memberId) => {
+  const wallets = await walletRepository.getDataByUserId(memberId);
+
+  const deposit = wallets.find((item) => item.wallet_type_id == "deposit");
+  const withdrawal = wallets.find(
+    (item) => item.wallet_type_id == "withdrawal"
+  );
+
+  return {
+    deposit,
+    withdrawal,
+  };
+};
+
+const requestWithdrawalMember = async (data) => {
+  const address = await walletRepository.getWalletByUserIdAndType(
+    data.user_id,
+    "withdrawal"
+  );
+  if (!address) throw new ResponseError("Address tidak ditemukan", 400);
+
+  const withdrawalPending = await withdrawalRepository.getDataByUserIdAndStatus(
+    data.user_id,
+    "new"
+  );
+  if (withdrawalPending) {
+    throw new ResponseError(
+      "Anda masih memiliki request withdrawal dengan status pending",
+      400
+    );
+  }
+
+  const withdrawalDTO = {
+    user_id: data.user_id,
+    coin_id: address.coin_id,
+    address: data.address,
+    amount: data.amount,
+    withdrawal_status_id: "new",
+  };
+
+  return withTransaction(async (transaction) => {
+    const withdrawalCreated = await withdrawalRepository.store(
+      withdrawalDTO,
+      transaction
+    );
+
+    // Log audit order
+    let dataAudit = {
+      user_id: data.user_id,
+      event: `Request withdrawal`,
+      model_id: withdrawalCreated.id,
+      model_name: withdrawal.tableName,
+      new_values: withdrawalCreated,
+    };
+    await auditService.store(dataAudit, transaction);
+  });
+};
+
 module.exports = {
   activationRequestMember,
   registerMember,
@@ -408,4 +467,6 @@ module.exports = {
   rejectVerificationMember,
   getMemberTree,
   blockMember,
+  getWalletMember,
+  requestWithdrawalMember,
 };
