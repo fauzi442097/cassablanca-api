@@ -1,4 +1,5 @@
 const db = require("../config/database");
+const transporter = require("../config/mail");
 const { asyncLocalStorage } = require("../middleware/log-activity");
 const jwt = require("jsonwebtoken");
 
@@ -114,6 +115,27 @@ const buildTree = (members, parentId = null) => {
   return tree;
 };
 
+const setExpiredOTPInMinutes = (minutes = 15) => {
+  const currentDate = new Date(); // Current date and time
+  const expiredOTP = new Date(currentDate.getTime() + minutes * 60000);
+  return expiredOTP;
+};
+
+const sendEmailOTPWallet = async (otp, email) => {
+  await transporter.sendMail({
+    from: "Anonymous <jayden.gibson29@ethereal.email>", // sender address
+    to: email, // list of receivers
+    subject: "Kode OTP untuk Verifikasi Login Anda", // Subject line
+    html: `<p> Halo Fauzi, </p>
+       <p> Terima kasih telah melakukan permintaan untuk memperbarui, membuat atau menghapus dompet withdraw Anda. Untuk melanjutkan, silakan masukkan kode OTP berikut untuk verifikasi: </p>
+      <p> Kode OTP: </p>
+      <span style="display: inline-block; background: #ccc; padding: 4px; font-size: 1.2rem; color: #fff;"> ${otp} </span> <br/>
+      <p> Kode ini berlaku selama <b> 15 menit </b>. Mohon jangan bagikan kode ini kepada siapa pun. </p>
+      <p> Jika Anda tidak melakukan permintaan ini, silakan abaikan email ini.</p>
+      <p>Terima kasih</p>,`, // html body
+  });
+};
+
 module.exports = {
   generateOtp,
   tryCatch,
@@ -125,4 +147,6 @@ module.exports = {
   getNextId,
   getRefTitle,
   buildTree,
+  setExpiredOTPInMinutes,
+  sendEmailOTPWallet,
 };

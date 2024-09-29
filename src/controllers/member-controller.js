@@ -2,6 +2,7 @@ const { tryCatch, getUserLogin } = require("../utils/helper");
 const Response = require("../utils/response-handler");
 
 const memberService = require("../services/member-service");
+const walletService = require("../services/wallet-service");
 
 const getMembers = async (req, res) => {
   const data = await memberService.getMembers(req.query);
@@ -68,6 +69,77 @@ const requestWithdrawal = tryCatch(async (req, res) => {
   return Response.Success(res, null, "Request withdrawal sukses");
 });
 
+const createWallet = tryCatch(async (req, res) => {
+  const data = req.body;
+  const result = await memberService.createWallet(data, req.user);
+  return Response.Success(
+    res,
+    result,
+    "Data berhasil disimpan. Silakan lanjutkan untuk verifikasi dengan OTP"
+  );
+});
+
+const updateWallet = tryCatch(async (req, res) => {
+  const { walletId } = req.params;
+  const data = req.body;
+  data.wallet_id = walletId;
+  const result = await memberService.updateWallet(data, req.user);
+  return Response.Success(
+    res,
+    result,
+    "Data berhasil disimpan. Silakan lanjutkan untuk verifikasi dengan OTP"
+  );
+});
+
+const getSingeWallet = tryCatch(async (req, res) => {
+  const { memberId, walletId } = req.params;
+  const data = await memberService.getSingWalletMemberById(memberId, walletId);
+  return Response.Success(res, data);
+});
+
+const verifyOTPWallet = tryCatch(async (req, res) => {
+  const data = req.body;
+  await memberService.verifyOTPWallet(data, req.user.id);
+  return Response.Success(
+    res,
+    null,
+    "OTP berhasil diverifikasi. Data berhasil diperbaharui"
+  );
+});
+
+const resendOTPWallet = tryCatch(async (req, res) => {
+  const data = req.body;
+  await memberService.resendOTPWallet(data, req.user.id);
+  return Response.Success(
+    res,
+    null,
+    "OTP berhasil dikirim. Silakan periksa email Anda"
+  );
+});
+
+const deleteWallet = tryCatch(async (req, res) => {
+  const { memberId, walletId } = req.params;
+  const { otp } = req.body;
+  const param = { memberId, walletId, otp, userId: req.user.id };
+  await memberService.deleteWallet(param);
+  return Response.Success(res, null, "Wallet berhasil dihapus");
+});
+
+const balanceMember = async (req, res) => {
+  const { memberId } = req.params;
+  const data = await memberService.getBalanceMember(memberId);
+  return Response.Success(res, data);
+};
+
+const historyTransactionBalance = async (req, res) => {
+  const { memberId } = req.params;
+  const data = await memberService.getHistoryTransactionBalance(
+    memberId,
+    req.query
+  );
+  return Response.Success(res, data);
+};
+
 module.exports = {
   activationRequest,
   registerMember,
@@ -79,4 +151,12 @@ module.exports = {
   blockMember,
   getWalletMember,
   requestWithdrawal,
+  createWallet,
+  updateWallet,
+  getSingeWallet,
+  verifyOTPWallet,
+  resendOTPWallet,
+  deleteWallet,
+  balanceMember,
+  historyTransactionBalance,
 };

@@ -14,6 +14,8 @@ const walletService = require("../services/wallet-service");
 
 const userRepository = require("../repositories/user-repository");
 const memberRepository = require("../repositories/member-repository");
+const userBallanceRepository = require("../repositories/user-ballance-repository");
+
 const { ROLE, STATUS_USER } = require("../utils/ref-value");
 
 const requestOTPService = async (email) => {
@@ -128,6 +130,7 @@ const registerMemberByReferalCode = async (data) => {
     await sendEmailOTP(otp, data.email);
 
     const newMember = await memberRepository.store(newMemberData, transaction);
+    await userBallanceRepository.createInitialBallanceMember(newMember.id);
 
     // Log Audit
     let dataAudit = {
@@ -139,7 +142,6 @@ const registerMemberByReferalCode = async (data) => {
     };
 
     await auditService.store(dataAudit);
-    await walletService.createWalletMember(newMember.id, transaction);
   });
 };
 

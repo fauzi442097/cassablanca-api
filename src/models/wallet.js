@@ -33,6 +33,18 @@ module.exports = function (sequelize, DataTypes) {
           key: "id",
         },
       },
+      otp: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      expired_otp: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      verified: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+      },
     },
     {
       sequelize,

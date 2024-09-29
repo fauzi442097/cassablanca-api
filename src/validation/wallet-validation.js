@@ -5,11 +5,36 @@ const walletSchema = z.object({
     .string({ required_error: "Wajib diisi" })
     .min(1, "Wajib diisi")
     .max(10),
-  user_id: z.number({ required_error: "Wajib diisi" }).min(0),
   address: z.string({ required_error: "Wajib diisi" }).max(150),
-  wallet_type_id: z.string({ required_error: "Wajib diisi" }).max(30),
+});
+
+const updateWalletSchema = z.object({
+  address: z.string({ required_error: "Wajib diisi" }).max(150),
+});
+
+const verifyOTPWalletSchema = z.object({
+  wallet_id: z.number({ required_error: "Wajib diisi" }).positive(),
+  otp: z
+    .string()
+    .length(6, { message: "OTP harus terdiri dari 6 digit" })
+    .regex(/^\d+$/, { message: "OTP harus berupa angka" }),
+});
+
+const resendOTPWalletSchema = z.object({
+  wallet_id: z.number({ required_error: "Wajib diisi" }).positive(),
+});
+
+const deletWalletSchema = z.object({
+  otp: z
+    .string()
+    .length(6, { message: "OTP harus terdiri dari 6 digit" })
+    .regex(/^\d+$/, { message: "OTP harus berupa angka" }),
 });
 
 module.exports = {
   walletSchema,
+  updateWalletSchema,
+  verifyOTPWalletSchema,
+  resendOTPWalletSchema,
+  deletWalletSchema,
 };

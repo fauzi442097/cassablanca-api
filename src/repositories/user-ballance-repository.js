@@ -1,7 +1,9 @@
+const { Op, fn, col } = require("sequelize");
 const db = require("../config/database");
 const initModels = require("../models/init-models");
+const sequelize = require("sequelize");
 
-const { users_balance_trx } = initModels(db);
+const { users_balance_trx, users_balance, reff_curr } = initModels(db);
 
 const storeBallance = async (data, transaction) => {
   return await users_balance_trx.create(data, {
@@ -17,7 +19,100 @@ const storeBulkBallance = async (data, transaction) => {
   });
 };
 
+const getDataByUserId = async (userId) => {
+  return await users_balance.findAll({
+    where: {
+      user_id: userId,
+    },
+  });
+};
+
+const createInitialBallanceMember = async (userId, transaction) => {
+  const ballanceDTO = [
+    {
+      user_id: userId,
+      curr_id: "ORE",
+      balance: 0,
+    },
+    {
+      user_id: userId,
+      curr_id: "USDT",
+      balance: 0,
+    },
+  ];
+  await users_balance.bulkCreate(ballanceDTO, transaction);
+};
+
+const getHistoryTrxByUserId = async (userId, params) => {
+  let offset;
+  let limit;
+  let whereClause = {};
+
+  whereClause.user_id = userId;
+
+  if (params && params.start_date && params.end_date) {
+    whereClause = {
+      created_at: {
+        [Op.between]: [
+          params.start_date + " 00:00:00",
+          params.end_date + " 23:59:59.999999",
+        ],
+      },
+    };
+  }
+
+  let queryType = "findAll";
+
+  if (params && params.page && params.size) {
+    offset = (params.page - 1) * params.size;
+    limit = parseInt(params.size);
+    queryType = "findAndCountAll";
+  }
+
+  const result = await users_balance_trx[queryType]({
+    attributes: [
+      "id",
+      "user_id",
+      "curr_id",
+      "amount",
+      "dbcr",
+      [
+        sequelize.literal(
+          `CASE WHEN dbcr = '0' THEN 'Debet' ELSE 'Kredit' END`
+        ),
+        "dbcr_type",
+      ],
+      "description",
+      "created_at",
+      [
+        sequelize.literal(`TO_CHAR(created_at, 'DD-MM-YYYY HH24:MI:SS')`),
+        "created_at_formatted",
+      ],
+    ],
+    where: whereClause,
+    order: [["created_at", "DESC"]],
+    offset: offset,
+    limit: limit,
+  });
+
+  if (params && params.page && params.size) {
+    return {
+      items: result.rows,
+      pagination: {
+        total_records: result.count,
+        total_pages: Math.ceil(result.count / params.size),
+        current_page: params.page,
+      },
+    };
+  }
+
+  return result;
+};
+
 module.exports = {
   storeBallance,
   storeBulkBallance,
+  createInitialBallanceMember,
+  getDataByUserId,
+  getHistoryTrxByUserId,
 };

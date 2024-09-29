@@ -19,6 +19,15 @@ const getAll = async () => {
   return data;
 };
 
+const getDataByIdAndUserId = async (walletId, userId) => {
+  return await wallet.findOne({
+    where: {
+      id: walletId,
+      user_id: userId,
+    },
+  });
+};
+
 const getDataById = async (walletId) => {
   const data = await wallet.findOne({
     include: [
@@ -149,6 +158,40 @@ const getWalletByUserIdAndType = async (userId, type) => {
   });
 };
 
+const getWalletByUserIdAndCoinId = async (userId, coinId) => {
+  return await wallet.findOne({
+    where: {
+      user_id: userId,
+      coin_id: coinId,
+    },
+  });
+};
+
+const getDataByOTP = async (otp) => {
+  return await wallet.findOne({
+    where: {
+      otp: otp,
+    },
+  });
+};
+
+const verificationWallet = async (walletId, transaction) => {
+  return await wallet.update(
+    {
+      verified: true,
+      otp: null,
+      expired_otp: null,
+    },
+    {
+      where: {
+        id: walletId,
+      },
+      returning: true,
+      transaction,
+    }
+  );
+};
+
 module.exports = {
   getAll,
   getDataById,
@@ -160,4 +203,8 @@ module.exports = {
   getWalletAdminByType,
   storeBulk,
   getWalletByUserIdAndType,
+  getWalletByUserIdAndCoinId,
+  getDataByIdAndUserId,
+  getDataByOTP,
+  verificationWallet,
 };

@@ -8,6 +8,13 @@ const authorize = require("../middleware/authorize");
 const { ROLE } = require("../utils/ref-value");
 const { confirmPaymentSchema } = require("../validation/order-validation");
 const { withdrawalSchema } = require("../validation/member-validation");
+const {
+  walletSchema,
+  updateWalletSchema,
+  verifyOTPWalletSchema,
+  resendOTPWalletSchema,
+  deletWalletSchema,
+} = require("../validation/wallet-validation");
 
 const router = express.Router();
 
@@ -29,12 +36,55 @@ router.get(
   memberController.getMembers
 );
 
+// WALLET
 router.get(
   "/:memberId/wallet",
   authorize([ROLE.MEMBER]),
   memberController.getWalletMember
 );
 
+router.get(
+  "/:memberId/wallet/:walletId",
+  authorize([ROLE.MEMBER]),
+  memberController.getSingeWallet
+);
+
+router.delete(
+  "/:memberId/wallet/:walletId",
+  authorize([ROLE.MEMBER]),
+  validateRequest(deletWalletSchema),
+  memberController.deleteWallet
+);
+
+router.post(
+  "/wallet",
+  authorize([ROLE.MEMBER]),
+  validateRequest(walletSchema),
+  memberController.createWallet
+);
+
+router.put(
+  "/wallet/:walletId",
+  authorize([ROLE.MEMBER]),
+  validateRequest(updateWalletSchema),
+  memberController.updateWallet
+);
+
+router.post(
+  "/wallet/verify-otp",
+  authorize([ROLE.MEMBER]),
+  validateRequest(verifyOTPWalletSchema),
+  memberController.verifyOTPWallet
+);
+
+router.post(
+  "/wallet/verify-otp/resend",
+  authorize([ROLE.MEMBER]),
+  validateRequest(resendOTPWalletSchema),
+  memberController.resendOTPWallet
+);
+
+// WITHDRAWAL
 router.post(
   "/:memberId/withdrawal",
   authorize([ROLE.MEMBER]),
@@ -71,6 +121,19 @@ router.post(
   "/:memberId/block",
   authorize([ROLE.ADMIN_CASSABLANCA]),
   memberController.blockMember
+);
+
+// BALANCE
+router.get(
+  "/:memberId/balance",
+  authorize([ROLE.MEMBER]),
+  memberController.balanceMember
+);
+
+router.get(
+  "/:memberId/balance/trx-history",
+  authorize([ROLE.MEMBER, ROLE.ADMIN_CASSABLANCA]),
+  memberController.historyTransactionBalance
 );
 
 module.exports = router;

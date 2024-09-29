@@ -5,6 +5,8 @@ const {
   generateOtp,
   generateReferralCode,
   buildTree,
+  setExpiredOTPInMinutes,
+  sendEmailOTPWallet,
 } = require("../utils/helper");
 const { STATUS_USER, ROLE, RANKING } = require("../utils/ref-value");
 
@@ -23,7 +25,8 @@ const walletService = require("../services/wallet-service");
 
 const initModels = require("../models/init-models");
 const ResponseError = require("../utils/response-error");
-const { member, orders, ranking, ranking_req, withdrawal } = initModels(db);
+const { member, orders, ranking, ranking_req, withdrawal, wallet } =
+  initModels(db);
 
 const activationRequestMember = async () => {
   const ranking = await rankingRepository.getActivationReq();
@@ -72,7 +75,7 @@ const registerMember = async (data, userId) => {
       new_values: newMember,
     };
     await auditService.store(dataAudit, transaction);
-    await walletService.createWalletMember(newMember.id, transaction, userId);
+    await userBallanceRepository.createInitialBallanceMember(newMember.id);
   });
 };
 
@@ -402,16 +405,7 @@ const blockMember = async (memberId, userLoginId) => {
 
 const getWalletMember = async (memberId) => {
   const wallets = await walletRepository.getDataByUserId(memberId);
-
-  const deposit = wallets.find((item) => item.wallet_type_id == "deposit");
-  const withdrawal = wallets.find(
-    (item) => item.wallet_type_id == "withdrawal"
-  );
-
-  return {
-    deposit,
-    withdrawal,
-  };
+  return wallets;
 };
 
 const requestWithdrawalMember = async (data) => {
@@ -458,6 +452,238 @@ const requestWithdrawalMember = async (data) => {
   });
 };
 
+const createWallet = async (data, userLogin) => {
+  const userId = userLogin.id;
+  const roleId = userLogin.role_id;
+
+  const currentWallet = await walletRepository.getWalletByUserIdAndCoinId(
+    userId,
+    data.coin_id
+  );
+  if (currentWallet) throw new ResponseError("Wallet sudah tersedia", 400);
+
+  const otp = generateOtp();
+  const expiredOTP = setExpiredOTPInMinutes(15);
+
+  const member = await memberRepository.getDataById(userId);
+  await sendEmailOTPWallet(otp, member.email);
+
+  const walletDTO = {
+    coin_id: data.coin_id,
+    address: data.address,
+    user_id: userId,
+    verified: false,
+    otp: otp,
+    expired_otp: expiredOTP,
+  };
+
+  if (roleId == ROLE.MEMBER) {
+    walletDTO.wallet_type_id = "withdrawal";
+  } else {
+    // Admin
+    walletDTO.wallet_type_id = "deposit";
+  }
+
+  return withTransaction(async (transaction) => {
+    const walletCreated = await walletRepository.store(walletDTO, transaction);
+
+    // Log audit order
+    let dataAudit = {
+      user_id: userId,
+      event: `Tambah wallet`,
+      model_id: walletCreated.id,
+      model_name: wallet.tableName,
+      new_values: walletCreated,
+    };
+    await auditService.store(dataAudit, transaction);
+
+    return walletCreated;
+  });
+};
+
+const updateWallet = async (data, userLogin) => {
+  const currentWallet = await walletRepository.getDataByIdAndUserId(
+    data.wallet_id,
+    userLogin.id
+  );
+
+  if (!currentWallet) throw new ResponseError("Wallet tidak ditemukan", 400);
+
+  const otp = generateOtp();
+  const expiredOTP = setExpiredOTPInMinutes(15);
+
+  const member = await memberRepository.getDataById(userLogin.id);
+  await sendEmailOTPWallet(otp, member.email);
+
+  const walletDTO = {
+    address: data.address,
+    verified: false,
+    otp: otp,
+    expired_otp: expiredOTP,
+  };
+
+  return withTransaction(async (transaction) => {
+    const walletUpdated = await walletRepository.update(
+      data.wallet_id,
+      walletDTO,
+      transaction
+    );
+
+    // Log audit order
+    let dataAudit = {
+      user_id: userLogin.id,
+      event: `Ubah wallet`,
+      model_id: data.wallet_id,
+      model_name: wallet.tableName,
+      old_values: currentWallet,
+      new_values: walletUpdated,
+    };
+    await auditService.store(dataAudit, transaction);
+
+    const [result] = walletUpdated[1];
+    return result;
+  });
+};
+
+const getSingWalletMemberById = async (memberId, walletId) => {
+  const currentWallet = await walletRepository.getDataByIdAndUserId(
+    walletId,
+    memberId
+  );
+  if (!currentWallet) throw new ResponseError("Wallet tidak ditemukan", 400);
+
+  return currentWallet;
+};
+
+const verifyOTPWallet = async (dataOTP, userLoginId) => {
+  const currentWallet = await walletRepository.getDataByIdAndUserId(
+    dataOTP.wallet_id,
+    userLoginId
+  );
+  if (!currentWallet) throw new ResponseError("Wallet tidak ditemukan", 400);
+
+  const walletOtp = await walletRepository.getDataByOTP(dataOTP.otp);
+  if (!walletOtp) throw new ResponseError("Kode OTP salah", 401);
+
+  const currentData = new Date();
+  if (currentData > currentWallet.expired_otp) {
+    throw new ResponseError(
+      "Kode OTP kadaluarsa. Silakan request ulang untuk mendapatkan kode baru",
+      401
+    );
+  }
+
+  return withTransaction(async (transaction) => {
+    const walletUpdated = await walletRepository.verificationWallet(
+      dataOTP.wallet_id,
+      transaction
+    );
+
+    // Log audit order
+    let dataAudit = {
+      user_id: userLoginId,
+      event: `Verifikasi OTP wallet`,
+      model_id: dataOTP.wallet_id,
+      model_name: wallet.tableName,
+      old_values: currentWallet,
+      new_values: walletUpdated,
+    };
+    await auditService.store(dataAudit, transaction);
+  });
+};
+
+const resendOTPWallet = async (data, userLoginId) => {
+  const currentWallet = await walletRepository.getDataByIdAndUserId(
+    data.wallet_id,
+    userLoginId
+  );
+
+  if (!currentWallet) throw new ResponseError("Wallet tidak ditemukan", 400);
+
+  if (currentWallet.verified)
+    throw new ResponseError(
+      "Proses tidak dapat dilakukan. Data sudah diverifikasi",
+      400
+    );
+
+  const otp = generateOtp();
+  const expiredOTP = setExpiredOTPInMinutes(15);
+
+  const member = await memberRepository.getDataById(userLoginId);
+  await sendEmailOTPWallet(otp, member.email);
+
+  const walletDTO = {
+    otp: otp,
+    expired_otp: expiredOTP,
+  };
+
+  return withTransaction(async (transaction) => {
+    const walletUpdated = await walletRepository.update(
+      data.wallet_id,
+      walletDTO,
+      transaction
+    );
+
+    // Log audit order
+    let dataAudit = {
+      user_id: userLoginId,
+      event: `Resend OTP verifikasi wallet`,
+      model_id: data.wallet_id,
+      model_name: wallet.tableName,
+      old_values: currentWallet,
+      new_values: walletUpdated,
+    };
+    await auditService.store(dataAudit, transaction);
+  });
+};
+
+const deleteWallet = async (param) => {
+  const { memberId, walletId, otp, userId } = param;
+  const currentWallet = await walletRepository.getDataByIdAndUserId(
+    walletId,
+    memberId
+  );
+
+  if (!currentWallet) throw new ResponseError("Wallet tidak ditemukan", 400);
+
+  const walletOtp = await walletRepository.getDataByOTP(otp);
+  if (!walletOtp) throw new ResponseError("Kode OTP salah", 401);
+
+  const currentData = new Date();
+  if (currentData > currentWallet.expired_otp) {
+    throw new ResponseError(
+      "Kode OTP kadaluarsa. Silakan request ulang untuk mendapatkan kode baru",
+      401
+    );
+  }
+
+  return withTransaction(async (transaction) => {
+    const walletDeleted = await walletRepository.deleteById(
+      walletId,
+      transaction
+    );
+
+    // Log audit order
+    let dataAudit = {
+      user_id: userId,
+      event: `Hapus wallet`,
+      model_id: walletId,
+      model_name: wallet.tableName,
+      old_values: walletDeleted,
+    };
+    await auditService.store(dataAudit, transaction);
+  });
+};
+
+const getBalanceMember = async (userId) => {
+  const result = await userBallanceRepository.getDataByUserId(userId);
+  return result;
+};
+
+const getHistoryTransactionBalance = async (userId, param) => {
+  return await userBallanceRepository.getHistoryTrxByUserId(userId, param);
+};
+
 module.exports = {
   activationRequestMember,
   registerMember,
@@ -469,4 +695,12 @@ module.exports = {
   blockMember,
   getWalletMember,
   requestWithdrawalMember,
+  createWallet,
+  updateWallet,
+  getSingWalletMemberById,
+  verifyOTPWallet,
+  resendOTPWallet,
+  deleteWallet,
+  getBalanceMember,
+  getHistoryTransactionBalance,
 };
