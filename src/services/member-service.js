@@ -239,9 +239,12 @@ const calculateBonus = async (memberIdParent, order, transaction) => {
     requirementTotalLine = rankingLineCount == downineRankCount;
   }
 
-  const teamMembers = await memberRepository.getTotalDownlineByMemberParentId(
-    parentMember.id
-  );
+  const teamMembers =
+    await memberRepository.getTotalDownlineByParentIdAndStatus(
+      parentMember.id,
+      STATUS_USER.ACTIVE
+    );
+    
   const dirrectReferral = await memberRepository.getTotalDirectDownline(
     parentMember.id,
     STATUS_USER.ACTIVE
@@ -276,20 +279,6 @@ const calculateBonus = async (memberIdParent, order, transaction) => {
   if (parentMember.member_id_parent) {
     await calculateBonus(parentMember.member_id_parent, order, transaction);
   }
-
-  return {
-    teamMembers,
-    teamMemberCount,
-    dirrectReferral,
-    directMemberCount,
-    requirementTotalLine,
-    rankingLine,
-    teamMemberCount,
-    directMemberCount,
-    rankingRequirements,
-    parentMember,
-    upRanking,
-  };
 };
 
 const calculateComponentBonus = async (order, componentBonus, transaction) => {

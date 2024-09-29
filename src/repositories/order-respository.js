@@ -2,7 +2,7 @@ const { Op } = require("sequelize");
 const db = require("../config/database");
 const initModels = require("../models/init-models");
 
-const { orders, product } = initModels(db);
+const { orders, product, member } = initModels(db);
 
 const getOrderPendingByMemberAndTrxId = async (memberId, transactionId) => {
   return await orders.findOne({
@@ -61,10 +61,68 @@ const approveOrderById = async (orderId, data, transaction) => {
   });
 };
 
+const getHistoryOrder = async (params) => {
+  let offset;
+  let limit;
+  let whereClause = {};
+
+  if (params.search) {
+    whereClause[Op.or] = [
+      { fullname: { [Op.iLike]: `%${params.search}%` } },
+      { email: { [Op.iLike]: `%${params.search}%` } },
+    ];
+  }
+
+  let queryType = "findAll";
+  if (params.page && params.size) {
+    offset = (params.page - 1) * params.size;
+    limit = parseInt(params.size);
+    queryType = "findAndCountAll";
+  }
+
+  const response = await orders[queryType]({
+    include: [
+      {
+        model: product,
+        as: "product",
+        attributes: [
+          "curr_id",
+          "price",
+          "sharing_pct_usdt",
+          "sharing_pct_product",
+        ],
+      },
+      {
+        model: member,
+        as: "member",
+        attributes: ["email", "fullname"],
+        where: whereClause,
+      },
+    ],
+    order: [["id", "DESC"]],
+    offset: offset,
+    limit: limit,
+  });
+
+  if (params.page && params.size) {
+    return {
+      items: response.rows,
+      pagination: {
+        total_records: response.count,
+        total_pages: Math.ceil(response.count / params.size),
+        current_page: params.page,
+      },
+    };
+  }
+
+  return response;
+};
+
 module.exports = {
   store,
   getOrderPendingByMemberAndTrxId,
   getOrderByid,
   getOrderPendingByMemberId,
   approveOrderById,
+  getHistoryOrder,
 };

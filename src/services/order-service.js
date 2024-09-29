@@ -67,6 +67,7 @@ const confirmPaymentMember = async (data) => {
   });
 };
 
+
 module.exports = {
   confirmPaymentMember,
 };

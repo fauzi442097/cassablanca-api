@@ -30,7 +30,7 @@ const registerMember = tryCatch(async (req, res) => {
 
 const verificationMember = tryCatch(async (req, res) => {
   const { memberId } = req.params;
-  const data = await memberService.verificationMember(memberId, req.user.id);
+  await memberService.verificationMember(memberId, req.user.id);
   return Response.Success(res, null, "Aktivasi member berhasil");
 });
 

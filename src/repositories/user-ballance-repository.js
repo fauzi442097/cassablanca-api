@@ -10,6 +10,14 @@ const storeBallance = async (data, transaction) => {
   });
 };
 
+const storeBulkBallance = async (data, transaction) => {
+  return await users_balance_trx.bulkCreate(data, {
+    returning: true,
+    transaction,
+  });
+};
+
 module.exports = {
   storeBallance,
+  storeBulkBallance,
 };

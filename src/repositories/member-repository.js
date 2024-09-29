@@ -1,8 +1,9 @@
 const { Op } = require("sequelize");
 const db = require("../config/database");
 const initModels = require("../models/init-models");
+const sequelize = require("sequelize");
 
-const { member, reff_user_status } = initModels(db);
+const { member, reff_user_status, ranking, bonus } = initModels(db);
 
 const getAllWithoutPaging = async (parentId) => {
   let whereConditions = {};
@@ -303,6 +304,148 @@ const getTotalDownlineByParentAndRankingId = async (
   });
 };
 
+const getTotalBonusByStatusOrder = async (params, bonusStatus) => {
+  let offset;
+  let limit;
+  let whereClause = {};
+
+  if (params.search) {
+    whereClause[Op.or] = [
+      { fullname: { [Op.iLike]: `%${params.search}%` } },
+      { email: { [Op.iLike]: `%${params.search}%` } },
+    ];
+  }
+
+  if (params.page && params.size) {
+    offset = (params.page - 1) * params.size;
+    limit = parseInt(params.size);
+  }
+
+  const response = await member.findAll({
+    attributes: [
+      [sequelize.col("member.id"), "id"],
+      "fullname",
+      "email",
+      [sequelize.col("ranking.id"), "ranking_id"],
+      "ranking.ranking_nm",
+      [
+        sequelize.fn(
+          "SUM",
+          sequelize.literal(
+            `CASE WHEN bonuses.curr_id = 'ORE' THEN bonuses.amount END`
+          )
+        ),
+        "total_ore",
+      ],
+      [
+        sequelize.fn(
+          "SUM",
+          sequelize.literal(
+            `CASE WHEN bonuses.curr_id = 'USDT' THEN bonuses.amount END`
+          )
+        ),
+        "total_usdt",
+      ],
+    ],
+    include: [
+      {
+        attributes: ["ranking_nm"],
+        model: ranking,
+        required: true,
+        as: "ranking",
+      },
+      {
+        attributes: [],
+        model: bonus,
+        as: "bonuses",
+        required: true,
+        where: {
+          bonus_status_id: bonusStatus,
+        },
+      },
+    ],
+    where: whereClause,
+    group: [
+      "member.id",
+      "member.fullname",
+      "member.email",
+      "ranking.id",
+      "ranking.ranking_nm",
+    ],
+    subQuery: false,
+    order: [
+      ["total_ore", "DESC"],
+      ["total_usdt", "DESC"],
+    ],
+    offset: offset,
+    limit: limit,
+  });
+
+  if (params.page && params.size) {
+    return {
+      items: response,
+      pagination: {
+        total_records: response.length,
+        total_pages: Math.ceil(response.length / params.size),
+        current_page: params.page,
+      },
+    };
+  }
+
+  return response;
+};
+
+const getTotalDownlineByParentIdAndStatus = async (memberId, userStatusId) => {
+  const countQuery = `
+    with recursive downline as (
+      select
+        m.id,
+        m.fullname,
+        m.email,
+        m.user_status_id,
+        m.referal_code,
+        m.member_id_parent,
+        rus.user_status_nm
+      from
+        "member" m
+      join reff_user_status rus on
+        rus.id = m.user_status_id
+      where
+        m.id = :member_id
+      union
+      select
+        m.id,
+        m.fullname,
+        m.email,
+        m.user_status_id,
+        m.referal_code,
+        m.member_id_parent,
+        rus.user_status_nm
+      from
+        "member" m
+      join reff_user_status rus on
+        rus.id = m.user_status_id
+      join downline b on
+        m.member_id_parent = b.id
+            )
+      select
+        count(*) as total
+      from
+        downline d
+      where
+        d.id != :member_id and d.user_status_id = :user_status_id
+  `;
+
+  const [[{ total }]] = await db.query(countQuery, {
+    replacements: {
+      member_id: memberId,
+      user_status_id: userStatusId,
+    },
+  });
+
+  return parseInt(total);
+};
+
 module.exports = {
   getDataByEmail,
   getDataByReferalCode,
@@ -316,4 +459,6 @@ module.exports = {
   getTotalDirectDownline,
   getTotalDownlineByParentAndRankingId,
   getAllWithoutPaging,
+  getTotalBonusByStatusOrder,
+  getTotalDownlineByParentIdAndStatus,
 };
