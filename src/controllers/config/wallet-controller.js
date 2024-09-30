@@ -21,27 +21,27 @@ const getWalletById = tryCatch(async (req, res) => {
 const getWalletByUser = async (req, res) => {
   const { userId } = req.params;
   const data = await walletService.getWalletByUser(userId);
-  if (!data) return Response.NotFound("Data tidak ditemukan", 404);
+  if (!data) return Response.NotFound("Data not found", 404);
   return Response.Success(res, data);
 };
 
 const storeWalletAdmin = tryCatch(async (req, res) => {
   const data = req.body;
   await walletService.storeWallet(data);
-  return Response.Success(res, null, "Data berhasil disimpan");
+  return Response.Success(res, null, "Data has been saved successfully");
 });
 
 const deleteWalletById = tryCatch(async (req, res) => {
   const { walletId } = req.params;
   await walletService.deleteWalletById(walletId);
-  return Response.Success(res, null, "Data berhasil dihapus");
+  return Response.Success(res, null, "Data has been deleted successfully");
 });
 
 const updateWalletById = tryCatch(async (req, res) => {
   const { walletId } = req.params;
   const data = req.body;
   await walletService.updateWallet(walletId, data);
-  return Response.Success(res, null, "Data berhasil disimpan");
+  return Response.Success(res, null, "Data has been saved successfully");
 });
 
 module.exports = {

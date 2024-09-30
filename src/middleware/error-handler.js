@@ -34,13 +34,13 @@ const errorHandler = (err, req, res, next) => {
       errorMessage = err.errors.map((e) => e.message).join(", ");
       return Response.BadRequest(res, "Validation error", errorMessage);
     } else if (err.name == "SequelizeUniqueConstraintError") {
-      errorMessage = "Data sudah tersedia";
+      errorMessage = "Data is already available.";
       return Response.Custom(res, 409, errorMessage, err.stack);
     } else if (err.name == "SequelizeForeignKeyConstraintError") {
       if (req.method == "DELETE") {
-        errorMessage = "Tidak dapat dihapus. Data sedang digunakan";
+        errorMessage = "Cannot delete. Data is currently in use";
       } else {
-        errorMessage = "Operasi tidak dapat dilakukan. Data sedang digunakan";
+        errorMessage = "Unable to proceed. Data is currently in use";
       }
       return Response.BadRequest(res, errorMessage, undefined);
     } else {

@@ -59,7 +59,7 @@ const distributBonusMember = async (idMembers, userLoginId) => {
 
       let auditDTO = {
         user_id: userLoginId,
-        event: `Distribusi bonus member`,
+        event: `Bonus distribution to member`,
         model_id: ballanceCreated.map((item) => item.id).join(", "),
         model_name: users_balance_trx.tableName,
         new_values: ballanceCreated,
@@ -104,7 +104,7 @@ const getAllWithdrawalMember = async (queryParams) => {
 
 const rejectWithdrawalMember = async (withdrawalId, userLoginId) => {
   const witdrawalMember = await withdrawalRepository.getDataById(withdrawalId);
-  if (!witdrawalMember) throw new ResponseError("Data tidak ditemukan", 404);
+  if (!witdrawalMember) throw new ResponseError("Data not found", 404);
 
   return withTransaction(async (transaction) => {
     const dataUpdated = await withdrawalRepository.updateStatusWithdrawal(
@@ -127,7 +127,7 @@ const rejectWithdrawalMember = async (withdrawalId, userLoginId) => {
 
 const approveWithdrawalMember = async (withdrawalId, userLoginId) => {
   const witdrawalMember = await withdrawalRepository.getDataById(withdrawalId);
-  if (!witdrawalMember) throw new ResponseError("Data tidak ditemukan", 404);
+  if (!witdrawalMember) throw new ResponseError("Data not found", 404);
 
   const withdrawalDTO = {
     user_id_admin: userLoginId,
@@ -155,7 +155,7 @@ const approveWithdrawalMember = async (withdrawalId, userLoginId) => {
     );
     let auditDTO = {
       user_id: userLoginId,
-      event: `Update saldo member`,
+      event: `Update member balance`,
       model_id: ballanceCreated.id,
       model_name: users_balance_trx.tableName,
       new_values: ballanceCreated,

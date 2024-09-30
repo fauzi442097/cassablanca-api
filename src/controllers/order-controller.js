@@ -10,7 +10,7 @@ const confirmPayment = tryCatch(async (req, res) => {
   return Response.Success(
     res,
     null,
-    "Konfirmasi pembayaran berhasil. Silakan tunggu sampai transaksi selesai diverifikasi"
+    "Payment confirmed successfully! Please wait while the transaction is being verified."
   );
 });
 

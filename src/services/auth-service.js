@@ -20,7 +20,11 @@ const { ROLE, STATUS_USER } = require("../utils/ref-value");
 
 const requestOTPService = async (email) => {
   const user = await userRepository.getDataByEmail(email);
-  if (!user) throw new ResponseError("Email tidak terdaftar dalam sistem", 401);
+  if (!user)
+    throw new ResponseError(
+      "This email address is not registered. Please check and try again",
+      401
+    );
 
   const otp = generateOtp();
 
@@ -54,12 +58,16 @@ const requestOTPService = async (email) => {
 
 const verifyOTPService = async (otp) => {
   const user = await userRepository.getDataByOTP(otp);
-  if (!user) throw new ResponseError("Kode OTP salah", 401);
+  if (!user)
+    throw new ResponseError(
+      "Invalid OTP. Please check the code and enter it again.",
+      401
+    );
 
   const currentData = new Date();
   if (currentData > user.expired_otp) {
     throw new ResponseError(
-      "Kode OTP kadaluarsa. Silakan request ulang untuk mendapatkan kode baru",
+      "OTP has expired. Please request a new code to continue",
       401
     );
   }
@@ -100,7 +108,7 @@ const registerMemberByReferalCode = async (data) => {
   const memberByEmail = await memberRepository.getDataByEmail(data.email);
   if (memberByEmail)
     throw new ResponseError(
-      "Email sudah digunakan. Silakan gunakan email lain",
+      "This email address is already registered. Please enter a different email address",
       400
     );
 
@@ -108,7 +116,10 @@ const registerMemberByReferalCode = async (data) => {
     data.referal_code
   );
   if (!memberByRefCode)
-    throw new ResponseError("Referral code yang anda masukan salah", 400);
+    throw new ResponseError(
+      "The referral code is invalid. Please check and try again",
+      400
+    );
 
   const referralCode = generateReferralCode();
 
@@ -135,7 +146,7 @@ const registerMemberByReferalCode = async (data) => {
     // Log Audit
     let dataAudit = {
       user_id: newMember.id,
-      event: "Registrasi member dengan referral code",
+      event: "Register member with referral code",
       model_id: newMember.id,
       model_name: member.tableName,
       new_values: newMember,

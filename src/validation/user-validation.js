@@ -1,43 +1,34 @@
 const { z } = require("../config/zod-language");
 
 const requestOTPValidation = z.object({
-  email: z
-    .string({ required_error: "Wajib diisi" })
-    .min(1, "Wajib diisi")
-    .email(),
+  email: z.string({ required_error: "Required" }).min(1, "Required").email(),
 });
 
 const requestVerifyOtpValidation = z.object({
   otp: z
     .string()
-    .length(6, { message: "OTP harus terdiri dari 6 digit" })
-    .regex(/^\d+$/, { message: "OTP harus berupa angka" }),
+    .length(6, { message: "OTP must be a 6-digit number" })
+    .regex(/^\d+$/, { message: "OTP must be in numeric format" }),
 });
 
 const signUpSchema = z.object({
-  email: z
-    .string({ required_error: "Wajib diisi" })
-    .min(1, "Wajib diisi")
-    .email(),
+  email: z.string({ required_error: "Required" }).min(1, "Required").email(),
   full_name: z
-    .string({ required_error: "Wajib diisi" })
-    .min(1, "Wajib diisi")
+    .string({ required_error: "Required" })
+    .min(1, "Required")
     .max(50),
   referal_code: z
-    .string({ required_error: "Wajib diisi" })
-    .min(1, "Wajib diisi")
+    .string({ required_error: "Required" })
+    .min(1, "Required")
     .max(8),
 });
 
 const registerMemberSchema = z.object({
-  email: z
-    .string({ required_error: "Wajib diisi" })
-    .min(1, "Wajib diisi")
-    .email(),
+  email: z.string({ required_error: "Required" }).min(1, "Required").email(),
   full_name: z
-    .string({ required_error: "Wajib diisi" })
-    .min(1, "Wajib diisi")
-    .max(50, "Wajib diisi"),
+    .string({ required_error: "Required" })
+    .min(1, "Required")
+    .max(50, "Required"),
   parent_id: z.number().positive().nullable(),
 });
 

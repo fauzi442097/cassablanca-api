@@ -6,25 +6,19 @@ const idMembersSchema = z.object({
 
 const withdrawalSchema = z.object({
   transaction_id: z
-    .string({ required_error: "Wajib diisi" })
-    .min(1, "Wajib diisi")
+    .string({ required_error: "Required" })
+    .min(1, "Required")
     .max(100),
-  amount: z.number({ required_error: "Wajib diisi" }).positive(),
-  wallet_id: z.number({ required_error: "Wajib diisi" }).positive(),
+  amount: z.number({ required_error: "Required" }).positive(),
+  wallet_id: z.number({ required_error: "Required" }).positive(),
 });
 
 const walletSchema = z.object({
-  coin_id: z
-    .string({ required_error: "Wajib diisi" })
-    .min(1, "Wajib diisi")
-    .max(10),
-  address: z
-    .string({ required_error: "Wajib diisi" })
-    .min(1, "Wajib diisi")
-    .max(255),
+  coin_id: z.string({ required_error: "Required" }).min(1, "Required").max(10),
+  address: z.string({ required_error: "Required" }).min(1, "Required").max(255),
   wallet_type_id: z
-    .string({ required_error: "Wajib diisi" })
-    .min(1, "Wajib diisi")
+    .string({ required_error: "Required" })
+    .min(1, "Required")
     .max(15),
 });
 

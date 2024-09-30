@@ -20,7 +20,11 @@ const validateRequest = (schema) => {
           return acc;
         }, {});
 
-        return Response.BadRequest(res, "Invalid data", validationErrors);
+        return Response.BadRequest(
+          res,
+          "Validation failed. Please check your input.",
+          validationErrors
+        );
       } else {
         return Response.Error(res);
       }

@@ -14,13 +14,13 @@ const getAllProducts = async () => {
 
 const getProductById = async (productId) => {
   const product = await productRepository.getDataById(productId);
-  if (!product) throw new ResponseError("Data tidak ditemukan", 404);
+  if (!product) throw new ResponseError("Data not found", 404);
   return product;
 };
 
 const updateProduct = async (productId, data) => {
   const productExisting = await productRepository.getDataById(productId);
-  if (!productExisting) throw new ResponseError("Data tidak ditemukan", 404);
+  if (!productExisting) throw new ResponseError("Data not found", 404);
 
   const ProductDTO = { ...data, price: data.price };
   return withTransaction(async (transaction) => {
@@ -45,16 +45,19 @@ const updateProduct = async (productId, data) => {
 const storeProduct = async (data) => {
   const currency = await reff_curr.findByPk(data.curr_id);
   if (!currency)
-    throw new ResponseError(`Currency '${data.curr_id}' tidak dikenali`, 401);
+    throw new ResponseError(
+      `Currency '${data.curr_id}' is not recognized`,
+      401
+    );
 
   const dataExisting = await productRepository.getDataByCurrId(data.curr_id);
-  if (dataExisting) throw new ResponseError(`Data sudah tersedia`, 401);
+  if (dataExisting) throw new ResponseError(`Data already exists`, 401);
 
   const ProductDTO = { ...data, price: data.price };
   return withTransaction(async (transaction) => {
     const dataCreated = await productRepository.store(ProductDTO, transaction);
     const AuditDTO = {
-      event: `Tambah produk`,
+      event: `Create product`,
       model_id: dataCreated.id,
       model_name: product.tableName,
       new_values: dataCreated,
@@ -65,13 +68,13 @@ const storeProduct = async (data) => {
 
 const deleteProductById = async (productId) => {
   const productExisting = await productRepository.getDataById(productId);
-  if (!productExisting) throw new ResponseError("Data tidak ditemukan", 404);
+  if (!productExisting) throw new ResponseError("Data not found", 404);
 
   return withTransaction(async (transaction) => {
     await productRepository.deleteById(productId, transaction);
 
     const AuditDTO = {
-      event: `Hapus produk`,
+      event: `Delete product`,
       model_id: productExisting.id,
       model_name: product.tableName,
       old_values: productExisting,

@@ -3,6 +3,7 @@ const Response = require("../utils/response-handler");
 
 const memberService = require("../services/member-service");
 const walletService = require("../services/wallet-service");
+const { ROLE } = require("../utils/ref-value");
 
 const getMembers = async (req, res) => {
   const data = await memberService.getMembers(req.query);
@@ -26,13 +27,13 @@ const activationRequest = tryCatch(async (req, res) => {
 const registerMember = tryCatch(async (req, res) => {
   const data = req.body;
   await memberService.registerMember(data, req.user.id);
-  return Response.Success(res, null, "Registrasi member sukses");
+  return Response.Success(res, null, "Registration successful");
 });
 
 const verificationMember = tryCatch(async (req, res) => {
   const { memberId } = req.params;
   await memberService.verificationMember(memberId, req.user.id);
-  return Response.Success(res, null, "Aktivasi member berhasil");
+  return Response.Success(res, null, "Member activation success");
 });
 
 const rejectVerificationMember = tryCatch(async (req, res) => {
@@ -41,7 +42,7 @@ const rejectVerificationMember = tryCatch(async (req, res) => {
     memberId,
     req.user.id
   );
-  return Response.Success(res, null, "Berhasil direject");
+  return Response.Success(res, null, "Data has been successfully rejected");
 });
 
 const memberTree = tryCatch(async (req, res) => {
@@ -53,11 +54,13 @@ const memberTree = tryCatch(async (req, res) => {
 const blockMember = tryCatch(async (req, res) => {
   const { memberId } = req.params;
   await memberService.blockMember(memberId, req.user.id);
-  return Response.Success(res, null, "Member berhasil diblock");
+  return Response.Success(res, null, "Member has been successfully blocked.");
 });
 
 const getWalletMember = async (req, res) => {
   const { memberId } = req.params;
+  validateAccessResource(res, req, memberId);
+
   const data = await memberService.getWalletMember(memberId);
   return Response.Success(res, data);
 };
@@ -66,7 +69,11 @@ const requestWithdrawal = tryCatch(async (req, res) => {
   let data = req.body;
   data.user_id = req.user.id;
   await memberService.requestWithdrawalMember(data);
-  return Response.Success(res, null, "Request withdrawal sukses");
+  return Response.Success(
+    res,
+    null,
+    "Your withdrawal request has been submitted successfully"
+  );
 });
 
 const createWallet = tryCatch(async (req, res) => {
@@ -75,7 +82,7 @@ const createWallet = tryCatch(async (req, res) => {
   return Response.Success(
     res,
     result,
-    "Data berhasil disimpan. Silakan lanjutkan untuk verifikasi dengan OTP"
+    "Your data has been successfully saved. Please continue to verify your OTP."
   );
 });
 
@@ -87,12 +94,15 @@ const updateWallet = tryCatch(async (req, res) => {
   return Response.Success(
     res,
     result,
-    "Data berhasil disimpan. Silakan lanjutkan untuk verifikasi dengan OTP"
+    "Your data has been successfully saved. Please continue to verify your OTP."
   );
 });
 
 const getSingeWallet = tryCatch(async (req, res) => {
   const { memberId, walletId } = req.params;
+
+  validateAccessResource(res, req, memberId);
+
   const data = await memberService.getSingWalletMemberById(memberId, walletId);
   return Response.Success(res, data);
 });
@@ -103,7 +113,7 @@ const verifyOTPWallet = tryCatch(async (req, res) => {
   return Response.Success(
     res,
     null,
-    "OTP berhasil diverifikasi. Data berhasil diperbaharui"
+    "OTP verified successfully! Your data has been saved"
   );
 });
 
@@ -113,16 +123,18 @@ const resendOTPWallet = tryCatch(async (req, res) => {
   return Response.Success(
     res,
     null,
-    "OTP berhasil dikirim. Silakan periksa email Anda"
+    "OTP has been sent! Please check your email"
   );
 });
 
 const deleteWallet = tryCatch(async (req, res) => {
   const { memberId, walletId } = req.params;
+  validateAccessResource(res, req, memberId);
+
   const { otp } = req.body;
   const param = { memberId, walletId, otp, userId: req.user.id };
   await memberService.deleteWallet(param);
-  return Response.Success(res, null, "Wallet berhasil dihapus");
+  return Response.Success(res, null, "Success! Wallet has been removed");
 });
 
 const balanceMember = async (req, res) => {
@@ -143,6 +155,15 @@ const historyTransactionBalance = async (req, res) => {
 const getTransactionWithdrawal = async (req, res) => {
   const data = await memberService.getHistoryWithdrawal(req.user.id, req.query);
   return Response.Success(res, data);
+};
+
+const validateAccessResource = (res, req, memberId) => {
+  if (req.user.role_id == ROLE.MEMBER && req.user.id != memberId) {
+    return Response.Forbidden(
+      res,
+      "Access denied. You are not authorized to perform this action"
+    );
+  }
 };
 
 module.exports = {

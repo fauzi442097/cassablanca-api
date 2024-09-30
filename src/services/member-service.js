@@ -50,7 +50,7 @@ const registerMember = async (data, userId) => {
   const memberByEmail = await memberRepository.getDataByEmail(data.email);
   if (memberByEmail)
     throw new ResponseError(
-      "Email sudah digunakan. Silakan gunakan email lain",
+      "This email address is already registered. Please enter a different email address",
       400
     );
 
@@ -69,7 +69,7 @@ const registerMember = async (data, userId) => {
     // Log Audit
     let dataAudit = {
       user_id: newMember.id,
-      event: "Registrasi member",
+      event: "Register member",
       model_id: newMember.id,
       model_name: member.tableName,
       new_values: newMember,
@@ -109,16 +109,15 @@ const getMembers = async (param) => {
 const verificationMember = async (memberId, userLoginId) => {
   const memId = Number(memberId);
   if (!Number.isInteger(memId) || memId <= 0) {
-    throw new ResponseError("Parameter harus angka", 404);
+    throw new ResponseError("Parameter must be numeric", 404);
   }
 
   const currentMember = await memberRepository.getDataById(memberId);
-  if (!currentMember)
-    throw new ResponseError("Data Member tidak ditemukan", 404);
+  if (!currentMember) throw new ResponseError("Data Member not found", 404);
 
   if (currentMember.user_status_id != STATUS_USER.INACTIVE)
     throw new ResponseError(
-      "Aktivasi tidak diizinkan. Status member tidak dalam keadaan pending",
+      "Unable to activate. The current member status is not pending.",
       400
     );
 
@@ -130,7 +129,7 @@ const verificationMember = async (memberId, userLoginId) => {
     memberId
   );
   if (!orderPending) {
-    throw new ResponseError("Member sudah dilakukan verifikasi", 400);
+    throw new ResponseError("Member has already been verified", 400);
   }
 
   const dataApprove = {
@@ -155,7 +154,7 @@ const verificationMember = async (memberId, userLoginId) => {
     // Log audit order
     let dataAudit = {
       user_id: userLoginId,
-      event: `Approve Verifikasi pembayaran member ${currentMember.fullname}`,
+      event: `Approve verification payment member ${currentMember.fullname}`,
       model_id: orderPending.id,
       model_name: orders.tableName,
       old_values: orderPending,
@@ -323,16 +322,15 @@ const calculateComponentBonus = async (order, componentBonus, transaction) => {
 const rejectVerificationMember = async (memberId, userLoginId) => {
   const memId = Number(memberId);
   if (!Number.isInteger(memId) || memId <= 0) {
-    throw new ResponseError("Parameter harus angka", 404);
+    throw new ResponseError("Parameter must be numeric", 404);
   }
 
   const currentMember = await memberRepository.getDataById(memberId);
-  if (!currentMember)
-    throw new ResponseError("Data Member tidak ditemukan", 404);
+  if (!currentMember) throw new ResponseError("Data Member not found", 404);
 
   if (currentMember.user_status_id != STATUS_USER.INACTIVE)
     throw new ResponseError(
-      "Aktivasi tidak diizinkan. Status member tidak dalam keadaan pending",
+      "Unable to activate. The current member status is not pending.",
       400
     );
 
@@ -340,7 +338,7 @@ const rejectVerificationMember = async (memberId, userLoginId) => {
     memberId
   );
   if (!orderPending) {
-    throw new ResponseError("Member sudah dilakukan verifikasi", 400);
+    throw new ResponseError("Member has already been verified", 400);
   }
 
   const dataReject = {
@@ -357,7 +355,7 @@ const rejectVerificationMember = async (memberId, userLoginId) => {
     // Log audit order
     let dataAudit = {
       user_id: userLoginId,
-      event: `Reject Verifikasi pembayaran member ${currentMember.fullname}`,
+      event: `Reject Verification payment member ${currentMember.fullname}`,
       model_id: orderPending.id,
       model_name: orders.tableName,
       old_values: orderPending,
@@ -380,8 +378,7 @@ const getMemberTree = async (parentId) => {
 
 const blockMember = async (memberId, userLoginId) => {
   const currentMember = await memberRepository.getDataById(memberId);
-  if (!currentMember)
-    throw new ResponseError("Data Member tidak ditemukan", 404);
+  if (!currentMember) throw new ResponseError("Data Member not found", 404);
 
   return withTransaction(async (transaction) => {
     const blockedUser = await memberRepository.updateStatusMember(
@@ -410,12 +407,12 @@ const getWalletMember = async (memberId) => {
 
 const requestWithdrawalMember = async (data) => {
   const reffCurr = await reff_curr.findOne({ where: { id: "USDT" } });
-  if (!reffCurr) throw new ResponseError("Currency USDT tidak ditemukan", 404);
+  if (!reffCurr) throw new ResponseError("USDT Currency not found", 404);
 
   // Cek saldo dan batas minimum
   if (data.amount < reffCurr.min_withdrawal) {
     throw new ResponseError(
-      `Jumlah penarikan di bawah batas minimum. Minimun withdrawal ${reffCurr.min_withdrawal} USDT`,
+      `Withdrawal failed. Please enter an amount of at least ${reffCurr.min_withdrawal} USDT`,
       404
     );
   }
@@ -424,10 +421,14 @@ const requestWithdrawalMember = async (data) => {
     data.user_id
   );
   if (data.amount > balanceUSDT.balance) {
-    throw new ResponseError("Saldo tidak mencukupi", 404);
+    throw new ResponseError(
+      "Withdrawal failed. You do not have enough balance",
+      404
+    );
   }
 
   const wallet = await walletRepository.getDataById(data.wallet_id);
+  if (!wallet) throw new ResponseError("Wallet not found", 404);
 
   const withdrawalPending = await withdrawalRepository.getDataByUserIdAndStatus(
     data.user_id,
@@ -435,7 +436,7 @@ const requestWithdrawalMember = async (data) => {
   );
   if (withdrawalPending) {
     throw new ResponseError(
-      "Anda masih memiliki request withdrawal dengan status pending",
+      "Withdrawal failed. You currently have a withdrawal request with a pending status",
       400
     );
   }
@@ -475,7 +476,7 @@ const createWallet = async (data, userLogin) => {
     userId,
     data.coin_id
   );
-  if (currentWallet) throw new ResponseError("Wallet sudah tersedia", 400);
+  if (currentWallet) throw new ResponseError("Wallet already exists", 400);
 
   const otp = generateOtp();
   const expiredOTP = setExpiredOTPInMinutes(15);
@@ -505,7 +506,7 @@ const createWallet = async (data, userLogin) => {
     // Log audit order
     let dataAudit = {
       user_id: userId,
-      event: `Tambah wallet`,
+      event: `Create wallet`,
       model_id: walletCreated.id,
       model_name: wallet.tableName,
       new_values: walletCreated,
@@ -522,7 +523,7 @@ const updateWallet = async (data, userLogin) => {
     userLogin.id
   );
 
-  if (!currentWallet) throw new ResponseError("Wallet tidak ditemukan", 400);
+  if (!currentWallet) throw new ResponseError("Wallet not found", 400);
 
   const otp = generateOtp();
   const expiredOTP = setExpiredOTPInMinutes(15);
@@ -565,7 +566,7 @@ const getSingWalletMemberById = async (memberId, walletId) => {
     walletId,
     memberId
   );
-  if (!currentWallet) throw new ResponseError("Wallet tidak ditemukan", 400);
+  if (!currentWallet) throw new ResponseError("Wallet not found", 400);
 
   return currentWallet;
 };
@@ -575,15 +576,19 @@ const verifyOTPWallet = async (dataOTP, userLoginId) => {
     dataOTP.wallet_id,
     userLoginId
   );
-  if (!currentWallet) throw new ResponseError("Wallet tidak ditemukan", 400);
+  if (!currentWallet) throw new ResponseError("Wallet not found", 400);
 
   const walletOtp = await walletRepository.getDataByOTP(dataOTP.otp);
-  if (!walletOtp) throw new ResponseError("Kode OTP salah", 401);
+  if (!walletOtp)
+    throw new ResponseError(
+      "Invalid OTP. Please check the code and enter it again",
+      401
+    );
 
   const currentData = new Date();
   if (currentData > currentWallet.expired_otp) {
     throw new ResponseError(
-      "Kode OTP kadaluarsa. Silakan request ulang untuk mendapatkan kode baru",
+      "OTP code has expired. Please request a new code",
       401
     );
   }
@@ -597,7 +602,7 @@ const verifyOTPWallet = async (dataOTP, userLoginId) => {
     // Log audit order
     let dataAudit = {
       user_id: userLoginId,
-      event: `Verifikasi OTP wallet`,
+      event: `Verification OTP wallet`,
       model_id: dataOTP.wallet_id,
       model_name: wallet.tableName,
       old_values: currentWallet,
@@ -613,13 +618,10 @@ const resendOTPWallet = async (data, userLoginId) => {
     userLoginId
   );
 
-  if (!currentWallet) throw new ResponseError("Wallet tidak ditemukan", 400);
+  if (!currentWallet) throw new ResponseError("Wallet not found", 400);
 
   if (currentWallet.verified)
-    throw new ResponseError(
-      "Proses tidak dapat dilakukan. Data sudah diverifikasi",
-      400
-    );
+    throw new ResponseError("Unable to proceed. Data is already verified", 400);
 
   const otp = generateOtp();
   const expiredOTP = setExpiredOTPInMinutes(15);
@@ -642,7 +644,7 @@ const resendOTPWallet = async (data, userLoginId) => {
     // Log audit order
     let dataAudit = {
       user_id: userLoginId,
-      event: `Resend OTP verifikasi wallet`,
+      event: `Resend OTP verification wallet`,
       model_id: data.wallet_id,
       model_name: wallet.tableName,
       old_values: currentWallet,
@@ -659,15 +661,19 @@ const deleteWallet = async (param) => {
     memberId
   );
 
-  if (!currentWallet) throw new ResponseError("Wallet tidak ditemukan", 400);
+  if (!currentWallet) throw new ResponseError("Wallet not found", 400);
 
   const walletOtp = await walletRepository.getDataByOTP(otp);
-  if (!walletOtp) throw new ResponseError("Kode OTP salah", 401);
+  if (!walletOtp)
+    throw new ResponseError(
+      "Invalid OTP. Please check the code and enter it again",
+      401
+    );
 
   const currentData = new Date();
   if (currentData > currentWallet.expired_otp) {
     throw new ResponseError(
-      "Kode OTP kadaluarsa. Silakan request ulang untuk mendapatkan kode baru",
+      "OTP code has expired. Please request a new code",
       401
     );
   }
@@ -681,7 +687,7 @@ const deleteWallet = async (param) => {
     // Log audit order
     let dataAudit = {
       user_id: userId,
-      event: `Hapus wallet`,
+      event: `Delete wallet`,
       model_id: walletId,
       model_name: wallet.tableName,
       old_values: walletDeleted,

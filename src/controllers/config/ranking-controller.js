@@ -17,19 +17,19 @@ const updateLevel = tryCatch(async (req, res) => {
   const body = req.body;
   const { levelId } = req.params;
   await rankingService.updateRanking(levelId, body);
-  return Response.Success(res, null, "Data berhasil disimpan");
+  return Response.Success(res, null, "Data has been saved successfully");
 });
 
 const createLevel = tryCatch(async (req, res) => {
   const body = req.body;
   await rankingService.createRankingWithRequirement(body);
-  return Response.Success(res, null, "Data berhasil disimpan");
+  return Response.Success(res, null, "Data has been saved successfully");
 });
 
 const deleteLevel = tryCatch(async (req, res) => {
   const { levelId } = req.params;
   await rankingService.deleteRankingWithRequirement(levelId);
-  return Response.Success(res, null, "Data berhasil dihapus");
+  return Response.Success(res, null, "Data has been deleted successfully");
 });
 
 module.exports = {

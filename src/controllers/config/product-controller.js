@@ -17,19 +17,19 @@ const updateProduct = tryCatch(async (req, res) => {
   const { productId } = req.params;
   const data = req.body;
   await productService.updateProduct(productId, data);
-  return Response.Success(res, null, "Data berhasil disimpan");
+  return Response.Success(res, null, "Data has been saved successfully");
 });
 
 const storeProduct = tryCatch(async (req, res) => {
   const data = req.body;
   await productService.storeProduct(data);
-  return Response.Success(res, null, "Data berhasil disimpan");
+  return Response.Success(res, null, "Data has been saved successfully");
 });
 
 const deleteProduct = tryCatch(async (req, res) => {
   const { productId } = req.params;
   await productService.deleteProductById(productId);
-  return Response.Success(res, null, "Data berhasil dihapus");
+  return Response.Success(res, null, "Data has been deleted successfully");
 });
 
 module.exports = {

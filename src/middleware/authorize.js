@@ -23,7 +23,10 @@ const authorize = (roles = []) => {
       }
 
       if (roles.length && !roles.includes(user.role_id)) {
-        return Response.Forbidden(res, "Akses tidak diizinkan");
+        return Response.Forbidden(
+          res,
+          "Access denied. You are not authorized to perform this action"
+        );
       }
 
       next();

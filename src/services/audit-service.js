@@ -36,7 +36,7 @@ const getAll = async (page, size, search) => {
 
 const getDataById = async (auditId) => {
   const data = await audits.findByPk(auditId);
-  if (!data) throw new ResponseError("Data tidak ditemukan", 404);
+  if (!data) throw new ResponseError("Data not found", 404);
   return data;
 };
 
@@ -67,8 +67,6 @@ const store = async (data, transaction) => {
   const withTransaction = transaction ? { transaction } : {};
   await audits.create(dataAudit, withTransaction);
 };
-
-
 
 module.exports = {
   getAll,

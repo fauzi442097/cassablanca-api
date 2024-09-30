@@ -19,7 +19,7 @@ const distributeBonus = tryCatch(async (req, res) => {
   return Response.Success(
     res,
     null,
-    "Bonus berhasil didistribusikan ke wallet member"
+    "Bonus distribution completed successfully"
   );
 });
 
@@ -36,13 +36,13 @@ const withdrawalMember = async (req, res) => {
 const rejectWithdrawal = tryCatch(async (req, res) => {
   const { withdrawalId } = req.params;
   await adminService.rejectWithdrawalMember(withdrawalId, req.user.id);
-  return Response.Success(res, null, "Berhasil direject");
+  return Response.Success(res, null, "Data has been successfully rejected");
 });
 
 const approveWithdrawal = tryCatch(async (req, res) => {
   const { withdrawalId } = req.params;
   await adminService.approveWithdrawalMember(withdrawalId, req.user.id);
-  return Response.Success(res, null, "Berhasil approve");
+  return Response.Success(res, null, "Data has been successfully approved");
 });
 
 module.exports = {

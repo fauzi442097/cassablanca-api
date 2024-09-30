@@ -29,7 +29,7 @@ const getRangkings = async () => {
 
 const updateRanking = async (rankingId, data) => {
   const dataRanking = await rankingRepository.getDataById(rankingId);
-  if (!dataRanking) throw new ResponseError("Data tidak ditemukan", 404);
+  if (!dataRanking) throw new ResponseError("Data not found", 404);
 
   const prevRankingReq = await rankingReqRepository.getDataByRankingId(
     rankingId
@@ -75,7 +75,7 @@ const updateRanking = async (rankingId, data) => {
     }
 
     let rankingReqAudit = {
-      event: "Update persyaratan level",
+      event: "Update level requirement",
       model_id: dataRanking.id,
       model_name: ranking_req.tableName,
       old_values: prevRankingReq,
@@ -105,7 +105,7 @@ const createRankingWithRequirement = async (data) => {
 
     // Log Audit
     let dataAuditRanking = {
-      event: `Tambah level`,
+      event: `Create level`,
       model_id: rankingCreated.id,
       model_name: ranking.tableName,
       new_values: rankingCreated,
@@ -126,7 +126,7 @@ const createRankingWithRequirement = async (data) => {
       );
 
       let auditReqRanking = {
-        event: `Tambah persyaratan level`,
+        event: `Create level requirement`,
         model_id: rankingReqCreated.id,
         model_name: ranking_req.tableName,
         new_values: rankingReqCreated,
@@ -138,7 +138,7 @@ const createRankingWithRequirement = async (data) => {
 
 const deleteRankingWithRequirement = async (rankingId) => {
   const dataRanking = await rankingRepository.getDataById(rankingId);
-  if (!dataRanking) throw new ResponseError("Data tidak ditemukan", 404);
+  if (!dataRanking) throw new ResponseError("Data not found", 404);
 
   const dataReqRanking = await rankingReqRepository.getDataByRankingId(
     rankingId
@@ -151,7 +151,7 @@ const deleteRankingWithRequirement = async (rankingId) => {
 
     // Log Audit
     let dataAuditRanking = {
-      event: `Hapus persyaratan level`,
+      event: `Delete level requirement`,
       model_id: arrIdDeleted,
       model_name: ranking_req.tableName,
       old_values: dataReqRanking,
@@ -163,7 +163,7 @@ const deleteRankingWithRequirement = async (rankingId) => {
 
     // Log Audit
     dataAuditRanking = {
-      event: `Hapus level`,
+      event: `Delete level`,
       model_id: dataRanking.id,
       model_name: ranking.tableName,
       old_values: dataRanking,
@@ -189,7 +189,7 @@ const getRangkingById = async (rankingId) => {
     ],
   });
 
-  if (!data) throw new ResponseError("Data tidak ditemukan", 404);
+  if (!data) throw new ResponseError("Data not found", 404);
   return data;
 };
 
@@ -200,7 +200,7 @@ const getRankingBonuses = async () => {
 
 const updateRankingBonus = async (data, rankingId) => {
   const oldData = await ranking.findByPk(rankingId);
-  if (!oldData) throw new ResponseError("Data tidak ditemukan", 404);
+  if (!oldData) throw new ResponseError("Data not found", 404);
 
   return withTransaction(async (transaction) => {
     const rankingUpdated = await rankingRepository.updateBonusRankingById(
@@ -213,7 +213,7 @@ const updateRankingBonus = async (data, rankingId) => {
 
     // Log Audit
     const dataAudit = {
-      event: "Update bonus peringkat",
+      event: "Update bonus level",
       model_id: rankingId,
       model_name: ranking.tableName,
       old_values: oldData,
@@ -226,7 +226,7 @@ const updateRankingBonus = async (data, rankingId) => {
 
 const getRankingBonusById = async (rankingId) => {
   const data = await rankingRepository.getDataById(rankingId);
-  if (!data) throw new ResponseError("Data tidak ditemukan", 404);
+  if (!data) throw new ResponseError("Data not found", 404);
   return data;
 };
 

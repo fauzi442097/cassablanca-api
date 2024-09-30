@@ -13,10 +13,10 @@ const { orders } = initModels(db);
 
 const confirmPaymentMember = async (data) => {
   const product = await productRepository.getDataById(data.product_id);
-  if (!product) throw new ResponseError("Produk tidak ditemukan", 404);
+  if (!product) throw new ResponseError("Product not found", 404);
 
   const wallet = await walletRepository.getDataById(data.address_wallet_id);
-  if (!wallet) throw new ResponseError("Address wallet tidak ditemukan", 404);
+  if (!wallet) throw new ResponseError("Address wallet not found", 404);
 
   let order;
   if (!data.order_id) {
@@ -26,12 +26,12 @@ const confirmPaymentMember = async (data) => {
     );
 
     if (orderPending) {
-      throw new ResponseError("Transaksi masih dalam status pending", 400);
+      throw new ResponseError("Transaction is still in pending status", 400);
     }
   } else {
     order = await orderRepository.getOrderByid(data.order_id);
     if (order.order_sts_id == "waiting_approve") {
-      throw new ResponseError("Transaksi masih dalam status pending", 400);
+      throw new ResponseError("Transaction is still in pending status", 400);
     }
   }
 
@@ -57,7 +57,7 @@ const confirmPaymentMember = async (data) => {
     );
     let dataAudit = {
       user_id: data.user_id,
-      event: "Konfirmasi Pembayaran",
+      event: "Payment confirmation",
       model_id: data.order_id || response.id,
       model_name: orders.tableName,
       old_values: order,
@@ -66,7 +66,6 @@ const confirmPaymentMember = async (data) => {
     await auditService.store(dataAudit, transaction);
   });
 };
-
 
 module.exports = {
   confirmPaymentMember,

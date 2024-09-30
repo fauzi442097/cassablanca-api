@@ -32,7 +32,7 @@ router.post(
 
 router.get(
   "/",
-  authorize([ROLE.ADMIN_CASSABLANCA]),
+  authorize([ROLE.ADMIN_CASSABLANCA, ROLE.ADMIN_CONTINENTAL]),
   memberController.getMembers
 );
 
@@ -114,18 +114,18 @@ router.post(
 
 router.post(
   "/:memberId/verification",
-  authorize([ROLE.ADMIN_CASSABLANCA]),
+  authorize([ROLE.ADMIN_CONTINENTAL]),
   memberController.verificationMember
 );
 
 router.post(
   "/:memberId/reject-verification",
-  authorize([ROLE.ADMIN_CASSABLANCA]),
+  authorize([ROLE.ADMIN_CONTINENTAL]),
   memberController.rejectVerificationMember
 );
 router.post(
   "/:memberId/block",
-  authorize([ROLE.ADMIN_CASSABLANCA]),
+  authorize([ROLE.ADMIN_CONTINENTAL]),
   memberController.blockMember
 );
 

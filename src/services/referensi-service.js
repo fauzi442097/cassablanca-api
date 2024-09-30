@@ -35,7 +35,7 @@ const store = async (data, modelName, refName) => {
     });
 
     const AuditDTO = {
-      event: `Tambah referensi ${refTitle}`,
+      event: `Create referensi ${refTitle}`,
       model_id: dataCreated.id,
       model_name: Model.tableName,
       new_values: dataCreated,
@@ -51,7 +51,7 @@ const update = async (id, data, modelName, refName) => {
   const refTitle = helper.getRefTitle(refName);
 
   const dataExisting = await Model.findByPk(id);
-  if (!dataExisting) throw new ResponseError("Data tidak ditemukan", 404);
+  if (!dataExisting) throw new ResponseError("Data not found", 404);
 
   return helper.withTransaction(async (transaction) => {
     const dataUpdated = await Model.update(formData, {
@@ -61,7 +61,7 @@ const update = async (id, data, modelName, refName) => {
     });
 
     const AuditDTO = {
-      event: `Ubah referensi ${refTitle}`,
+      event: `Update referensi ${refTitle}`,
       model_id: id,
       model_name: Model.tableName,
       old_values: dataExisting,
@@ -76,7 +76,7 @@ const deleteById = async (id, modelName, refName) => {
   const refTitle = helper.getRefTitle(refName);
 
   const dataExisting = await Model.findByPk(id);
-  if (!dataExisting) throw new ResponseError("Data tidak ditemukan", 404);
+  if (!dataExisting) throw new ResponseError("Data not found", 404);
 
   return helper.withTransaction(async (transaction) => {
     await Model.destroy({
@@ -86,7 +86,7 @@ const deleteById = async (id, modelName, refName) => {
     });
 
     const AuditDTO = {
-      event: `Hapus referensi ${refTitle}`,
+      event: `Delete referensi ${refTitle}`,
       model_id: id,
       model_name: Model.tableName,
       old_values: dataExisting,

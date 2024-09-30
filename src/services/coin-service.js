@@ -21,7 +21,7 @@ const storeCoin = async (data, userId) => {
     data.curr_id,
     data.chain_id
   );
-  if (c) throw new ResponseError("Data sudah tersedia", 400);
+  if (c) throw new ResponseError("Data is available", 400);
 
   const coinDTO = {
     id: data.curr_id + "_" + data.chain_id,
@@ -34,7 +34,7 @@ const storeCoin = async (data, userId) => {
     // Log Audit
     const dataAudit = {
       user_id: userId,
-      event: "Tambah Coin",
+      event: "Create Coin",
       model_id: coinCreated.id,
       model_name: coin.tableName,
       new_values: coinCreated,
@@ -46,7 +46,7 @@ const storeCoin = async (data, userId) => {
 
 const updateCoin = async (coinId, data, userId) => {
   const coinExisting = await coinRepository.getDataById(coinId);
-  if (!coinExisting) throw new ResponseError("Data tidak ditemukan", 404);
+  if (!coinExisting) throw new ResponseError("Data not found", 404);
 
   const coinDTO = {
     ...data,
@@ -75,7 +75,7 @@ const updateCoin = async (coinId, data, userId) => {
 
 const removeCoin = async (coinId, userId) => {
   const coinExisting = await coinRepository.getDataById(coinId);
-  if (!coinExisting) throw new ResponseError("Data tidak ditemukan", 404);
+  if (!coinExisting) throw new ResponseError("Data not found", 404);
 
   return withTransaction(async (transaction) => {
     await coinRepository.remove(coinId, transaction);
@@ -83,7 +83,7 @@ const removeCoin = async (coinId, userId) => {
     // Log Audit
     const dataAudit = {
       user_id: userId,
-      event: "Hapus Coin",
+      event: "Delete Coin",
       model_id: coinId,
       model_name: coin.tableName,
       old_values: coinExisting,

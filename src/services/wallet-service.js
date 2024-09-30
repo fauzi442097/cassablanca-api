@@ -19,7 +19,7 @@ const getWalletAdmin = async () => {
 
 const getWalletById = async (walletId) => {
   const wallet = await walletRepository.getDataById(walletId);
-  if (!wallet) throw new ResponseError("Data tidak ditemukan", 404);
+  if (!wallet) throw new ResponseError("Data not found", 404);
   return wallet;
 };
 
@@ -29,7 +29,7 @@ const getWalletByUser = async (userId) => {
 
 const updateWallet = async (walletId, data) => {
   const dataExisting = await walletRepository.getDataById(walletId);
-  if (!dataExisting) throw new ResponseError("Data tidak ditemukan", 404);
+  if (!dataExisting) throw new ResponseError("Data not found", 404);
 
   return withTransaction(async (transaction) => {
     const walletCreated = await walletRepository.update(
@@ -61,12 +61,12 @@ const storeWallet = async (data) => {
       ],
     },
   });
-  if (dataExisting) throw new ResponseError("Data sudah digunakan", 400);
+  if (dataExisting) throw new ResponseError("Data already exists", 400);
 
   return withTransaction(async (transaction) => {
     const dataCreated = await walletRepository.store(data, transaction);
     const AuditDTO = {
-      event: `Tambah address wallet`,
+      event: `Create address wallet`,
       model_id: dataCreated.id,
       model_name: wallet.tableName,
       new_values: dataCreated,
@@ -77,13 +77,13 @@ const storeWallet = async (data) => {
 
 const deleteWalletById = async (walletId) => {
   const dataExisting = await walletRepository.getDataById(walletId);
-  if (!dataExisting) throw new ResponseError("Data tidak ditemukan", 404);
+  if (!dataExisting) throw new ResponseError("Data not found", 404);
 
   return withTransaction(async (transaction) => {
     await walletRepository.deleteById(walletId, transaction);
 
     const AuditDTO = {
-      event: `Hapus address wallet`,
+      event: `Delete address wallet`,
       model_id: dataExisting.id,
       model_name: wallet.tableName,
       old_values: dataExisting,
@@ -115,7 +115,7 @@ const createWalletMember = async (memberId, transaction, userLoginId) => {
   // Log Audit
   dataAudit = {
     user_id: userLoginId || memberId,
-    event: "Tambah wallet member",
+    event: "Create wallet member",
     model_id: memberId,
     model_name: wallet.tableName,
     new_values: walletCreated,
