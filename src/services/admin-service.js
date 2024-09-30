@@ -15,17 +15,7 @@ const ResponseError = require("../utils/response-error");
 const { users_balance_trx, withdrawal } = initModels(db);
 
 const getWalletAdmin = async () => {
-  const depositWallet = await walletRepository.getWalletAdminByType("deposit");
-  const withdrawalWallet = await walletRepository.getWalletAdminByType(
-    "withdrawal"
-  );
-
-  return {
-    wallet: {
-      deposit: depositWallet,
-      withdrawal: withdrawalWallet,
-    },
-  };
+  return await walletRepository.getDataByUserId(0);
 };
 
 const getBonusMember = async (queryParams) => {
@@ -119,13 +109,62 @@ const rejectWithdrawalMember = async (withdrawalId, userLoginId) => {
   return withTransaction(async (transaction) => {
     const dataUpdated = await withdrawalRepository.updateStatusWithdrawal(
       withdrawalId,
-      "reject",
+      "rejected",
       transaction
     );
 
     const auditDTO = {
       user_id: userLoginId,
       event: `Reject withdrawal member`,
+      model_id: withdrawalId,
+      model_name: withdrawal.tableName,
+      old_values: witdrawalMember,
+      new_values: dataUpdated,
+    };
+    await auditService.store(auditDTO, transaction);
+  });
+};
+
+const approveWithdrawalMember = async (withdrawalId, userLoginId) => {
+  const witdrawalMember = await withdrawalRepository.getDataById(withdrawalId);
+  if (!witdrawalMember) throw new ResponseError("Data tidak ditemukan", 404);
+
+  const withdrawalDTO = {
+    user_id_admin: userLoginId,
+    paid_at: new Date(),
+    withdrawal_status_id: "done",
+  };
+
+  return withTransaction(async (transaction) => {
+    const dataUpdated = await withdrawalRepository.updateWithdrawal(
+      withdrawalId,
+      withdrawalDTO,
+      transaction
+    );
+
+    const trxBalanceDTO = {
+      user_id: witdrawalMember.user_id,
+      curr_id: "USDT",
+      amount: witdrawalMember.amount,
+      dbcr: 0,
+      description: "Debet saldo USDT",
+    };
+    const ballanceCreated = await userBallanceRepository.storeBallance(
+      trxBalanceDTO,
+      transaction
+    );
+    let auditDTO = {
+      user_id: userLoginId,
+      event: `Update saldo member`,
+      model_id: ballanceCreated.id,
+      model_name: users_balance_trx.tableName,
+      new_values: ballanceCreated,
+    };
+    await auditService.store(auditDTO, transaction);
+
+    auditDTO = {
+      user_id: userLoginId,
+      event: `Approve withdrawal member`,
       model_id: withdrawalId,
       model_name: withdrawal.tableName,
       old_values: witdrawalMember,
@@ -142,4 +181,5 @@ module.exports = {
   historyVerification,
   getAllWithdrawalMember,
   rejectWithdrawalMember,
+  approveWithdrawalMember,
 };

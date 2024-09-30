@@ -43,6 +43,12 @@ const createInitialBallanceMember = async (userId, transaction) => {
   await users_balance.bulkCreate(ballanceDTO, transaction);
 };
 
+const getBallanceUSDT = async (userId) => {
+  return await users_balance.findOne({
+    where: { user_id: userId, curr_id: "USDT" },
+  });
+};
+
 const getHistoryTrxByUserId = async (userId, params) => {
   let offset;
   let limit;
@@ -51,13 +57,11 @@ const getHistoryTrxByUserId = async (userId, params) => {
   whereClause.user_id = userId;
 
   if (params && params.start_date && params.end_date) {
-    whereClause = {
-      created_at: {
-        [Op.between]: [
-          params.start_date + " 00:00:00",
-          params.end_date + " 23:59:59.999999",
-        ],
-      },
+    whereClause.created_at = {
+      [Op.between]: [
+        params.start_date + " 00:00:00",
+        params.end_date + " 23:59:59.999999",
+      ],
     };
   }
 
@@ -111,6 +115,7 @@ const getHistoryTrxByUserId = async (userId, params) => {
 
 module.exports = {
   storeBallance,
+  getBallanceUSDT,
   storeBulkBallance,
   createInitialBallanceMember,
   getDataByUserId,

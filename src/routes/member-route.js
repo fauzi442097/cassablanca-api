@@ -86,10 +86,16 @@ router.post(
 
 // WITHDRAWAL
 router.post(
-  "/:memberId/withdrawal",
+  "/withdrawal",
   authorize([ROLE.MEMBER]),
   validateRequest(withdrawalSchema),
   memberController.requestWithdrawal
+);
+
+router.get(
+  "/withdrawal",
+  authorize([ROLE.MEMBER]),
+  memberController.getTransactionWithdrawal
 );
 
 router.get("/tree", memberController.memberTree);

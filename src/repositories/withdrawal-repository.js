@@ -1,6 +1,7 @@
 const { Op } = require("sequelize");
 const db = require("../config/database");
 const initModels = require("../models/init-models");
+const sequelize = require("sequelize");
 
 const { withdrawal, users, reff_withdrawal_status } = initModels(db);
 
@@ -95,10 +96,80 @@ const updateStatusWithdrawal = async (id, status, transaction) => {
   );
 };
 
+const getDataByUserId = async (userId, params) => {
+  let offset;
+  let limit;
+  let whereClause = {};
+
+  whereClause.user_id = userId;
+
+  if (params && params.start_date && params.end_date) {
+    whereClause.created_at = {
+      [Op.between]: [
+        params.start_date + " 00:00:00",
+        params.end_date + " 23:59:59.999999",
+      ],
+    };
+  }
+
+  let queryType = "findAll";
+  if (params && params.page && params.size) {
+    offset = (params.page - 1) * params.size;
+    limit = parseInt(params.size);
+    queryType = "findAndCountAll";
+  }
+
+  const result = await withdrawal[queryType]({
+    attributes: {
+      include: [
+        [
+          sequelize.literal(`TO_CHAR(created_at, 'DD-MM-YYYY HH24:MI:SS')`),
+          "created_at_formatted",
+        ],
+      ],
+    },
+    include: [
+      {
+        model: reff_withdrawal_status,
+        as: "withdrawal_status",
+      },
+    ],
+    where: whereClause,
+    order: [["id", "DESC"]],
+    offset: offset,
+    limit: limit,
+  });
+
+  if (params && params.page && params.size) {
+    return {
+      items: result.rows,
+      pagination: {
+        total_records: result.count,
+        total_pages: Math.ceil(result.count / params.size),
+        current_page: params.page,
+      },
+    };
+  }
+
+  return result;
+};
+
+const updateWithdrawal = async (id, data, transaction) => {
+  return await withdrawal.update(data, {
+    where: {
+      id: id,
+    },
+    returning: true,
+    transaction,
+  });
+};
+
 module.exports = {
   store,
   getDataByUserIdAndStatus,
   updateStatusWithdrawal,
   getDataById,
   getAll,
+  getDataByUserId,
+  updateWithdrawal,
 };

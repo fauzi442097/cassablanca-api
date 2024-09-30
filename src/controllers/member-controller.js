@@ -140,6 +140,11 @@ const historyTransactionBalance = async (req, res) => {
   return Response.Success(res, data);
 };
 
+const getTransactionWithdrawal = async (req, res) => {
+  const data = await memberService.getHistoryWithdrawal(req.user.id, req.query);
+  return Response.Success(res, data);
+};
+
 module.exports = {
   activationRequest,
   registerMember,
@@ -159,4 +164,5 @@ module.exports = {
   deleteWallet,
   balanceMember,
   historyTransactionBalance,
+  getTransactionWithdrawal,
 };

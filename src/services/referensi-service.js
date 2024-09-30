@@ -120,7 +120,7 @@ const generateObjectData = async (data, refName, model, id = null) => {
       formData = { id, ...data };
       break;
     case "currency":
-      formData = { id: helper.toSnakeCase(data.id).toUpperCase() };
+      formData = { id: helper.toSnakeCase(data.id).toUpperCase(), ...data };
       break;
     case "chain":
       formData = { id: helper.toSnakeCase(data.id), ...data };

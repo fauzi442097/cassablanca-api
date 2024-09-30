@@ -25,7 +25,7 @@ const walletService = require("../services/wallet-service");
 
 const initModels = require("../models/init-models");
 const ResponseError = require("../utils/response-error");
-const { member, orders, ranking, ranking_req, withdrawal, wallet } =
+const { member, orders, ranking, ranking_req, withdrawal, wallet, reff_curr } =
   initModels(db);
 
 const activationRequestMember = async () => {
@@ -409,11 +409,25 @@ const getWalletMember = async (memberId) => {
 };
 
 const requestWithdrawalMember = async (data) => {
-  const address = await walletRepository.getWalletByUserIdAndType(
-    data.user_id,
-    "withdrawal"
+  const reffCurr = await reff_curr.findOne({ where: { id: "USDT" } });
+  if (!reffCurr) throw new ResponseError("Currency USDT tidak ditemukan", 404);
+
+  // Cek saldo dan batas minimum
+  if (data.amount < reffCurr.min_withdrawal) {
+    throw new ResponseError(
+      `Jumlah penarikan di bawah batas minimum. Minimun withdrawal ${reffCurr.min_withdrawal} USDT`,
+      404
+    );
+  }
+
+  const balanceUSDT = await userBallanceRepository.getBallanceUSDT(
+    data.user_id
   );
-  if (!address) throw new ResponseError("Address tidak ditemukan", 400);
+  if (data.amount > balanceUSDT.balance) {
+    throw new ResponseError("Saldo tidak mencukupi", 404);
+  }
+
+  const wallet = await walletRepository.getDataById(data.wallet_id);
 
   const withdrawalPending = await withdrawalRepository.getDataByUserIdAndStatus(
     data.user_id,
@@ -428,10 +442,11 @@ const requestWithdrawalMember = async (data) => {
 
   const withdrawalDTO = {
     user_id: data.user_id,
-    coin_id: address.coin_id,
-    address: data.address,
+    coin_id: wallet.coin_id,
+    address: wallet.address,
     amount: data.amount,
     withdrawal_status_id: "new",
+    chain_trx_id: data.transaction_id,
   };
 
   return withTransaction(async (transaction) => {
@@ -684,6 +699,10 @@ const getHistoryTransactionBalance = async (userId, param) => {
   return await userBallanceRepository.getHistoryTrxByUserId(userId, param);
 };
 
+const getHistoryWithdrawal = async (userId, param) => {
+  return await withdrawalRepository.getDataByUserId(userId, param);
+};
+
 module.exports = {
   activationRequestMember,
   registerMember,
@@ -703,4 +722,5 @@ module.exports = {
   deleteWallet,
   getBalanceMember,
   getHistoryTransactionBalance,
+  getHistoryWithdrawal,
 };

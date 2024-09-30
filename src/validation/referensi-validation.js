@@ -30,6 +30,7 @@ const withBonusStatusSchema = z.object({
 
 const currencySchema = z.object({
   id: z.string({ required_error: "Wajib diisi" }).min(1, "Wajib diisi").max(10),
+  min_withdrawal: z.number().int().positive().nullable(),
 });
 
 const chainSchema = z.object({
