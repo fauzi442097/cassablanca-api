@@ -446,6 +446,54 @@ const getTotalDownlineByParentIdAndStatus = async (memberId, userStatusId) => {
   return parseInt(total);
 };
 
+const getMemberDirectDownlineWithTotal = async (memberId) => {
+  const query = `select
+                    m.id,
+                    m.fullname,
+                    m.email,
+                    rus.user_status_nm,
+                    count(m2.id) as total
+                  from
+                    "member" m
+                  left join reff_user_status rus on
+                    rus.id = m.user_status_id
+                  left join member m2 on
+                    m2.member_id_parent = m.id
+                  where
+                    m.member_id_parent = :member_id
+                  group by
+                    m.id,
+                    m.fullname,
+                    m.email,
+                    rus.user_status_nm
+                  order by total desc`;
+
+  const [result] = await db.query(query, {
+    replacements: {
+      member_id: memberId,
+    },
+  });
+
+  return result;
+};
+
+const rekapMemberByStatus = async () => {
+  const query = `select 
+                    rus.user_status_nm,
+                    count(m.id) as total
+                  from
+                    "member" m
+                  left join reff_user_status rus on
+                    rus.id = m.user_status_id
+                  where
+                    m.role_id = 2
+                  group by
+                    rus.user_status_nm`;
+
+  const [result] = await db.query(query);
+  return result;
+};
+
 module.exports = {
   getDataByEmail,
   getDataByReferalCode,
@@ -461,4 +509,6 @@ module.exports = {
   getAllWithoutPaging,
   getTotalBonusByStatusOrder,
   getTotalDownlineByParentIdAndStatus,
+  getMemberDirectDownlineWithTotal,
+  rekapMemberByStatus,
 };

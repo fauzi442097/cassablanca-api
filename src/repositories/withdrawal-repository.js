@@ -164,6 +164,23 @@ const updateWithdrawal = async (id, data, transaction) => {
   });
 };
 
+const getWithdrawalPending = async () => {
+  return await withdrawal.findAll({
+    include: [
+      {
+        attributes: ["email", "fullname"],
+        model: users,
+        as: "member",
+      },
+    ],
+    where: {
+      withdrawal_status_id: {
+        [Op.in]: ["new", "waiting_approve"],
+      },
+    },
+  });
+};
+
 module.exports = {
   store,
   getDataByUserIdAndStatus,
@@ -172,4 +189,5 @@ module.exports = {
   getAll,
   getDataByUserId,
   updateWithdrawal,
+  getWithdrawalPending,
 };

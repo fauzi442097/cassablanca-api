@@ -118,6 +118,29 @@ const getHistoryOrder = async (params) => {
   return response;
 };
 
+const getOrderPending = async () => {
+  const data = await orders.findAll({
+    include: [
+      {
+        attributes: ["email", "fullname", "member_id_parent"],
+        model: member,
+        as: "member",
+      },
+      {
+        model: product,
+        as: "product",
+        attributes: ["curr_id", "price"],
+      },
+    ],
+    where: {
+      order_sts_id: "waiting_approve",
+    },
+    order: [["id", "DESC"]],
+  });
+
+  return data;
+};
+
 module.exports = {
   store,
   getOrderPendingByMemberAndTrxId,
@@ -125,4 +148,5 @@ module.exports = {
   getOrderPendingByMemberId,
   approveOrderById,
   getHistoryOrder,
+  getOrderPending,
 };
