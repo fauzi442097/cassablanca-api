@@ -366,14 +366,19 @@ const rejectVerificationMember = async (memberId, userLoginId) => {
 };
 
 const getMemberTree = async (parentId) => {
-  const data = await memberRepository.getAllWithoutPaging();
-  const membersJSON = data.map((member) => member.toJSON());
-  let memberTree = buildTree(membersJSON);
-
+  let membersJSON;
+  let result;
   if (parentId) {
-    memberTree = memberTree.filter((item) => item.id == parentId);
+    membersJSON = await memberRepository.getDownlineMemberWithSelf(parentId);
+    const [memberTree] = buildTree(membersJSON);
+    result = memberTree;
+  } else {
+    const data = await memberRepository.getAllWithoutPaging();
+    membersJSON = data.map((item) => item.toJSON());
+    result = buildTree(membersJSON);
   }
-  return memberTree;
+
+  return result;
 };
 
 const blockMember = async (memberId, userLoginId) => {

@@ -104,15 +104,24 @@ const getRefTitle = (refName) => {
 };
 
 const buildTree = (members, parentId = null) => {
-  const tree = [];
-  for (const member of members) {
-    if (member.member_id_parent === parentId) {
-      // Recursively find children
-      member.downlines = buildTree(members, member.id);
-      tree.push(member);
-    }
-  }
-  return tree;
+  // const tree = [];
+  // for (const member of members) {
+  //   if (member.member_id_parent === parentId) {
+  //     // Recursively find children
+  //     member.downlines = buildTree(members, member.id);
+  //     tree.push(member);
+  //   }
+  // }
+  // return tree;
+
+  return members
+    .filter((member) => member.member_id_parent === parentId)
+    .map((member) => ({
+      id: member.id,
+      name: member.fullname,
+      attributes: { ranking: member.ranking_nm },
+      children: buildTree(members, member.id),
+    }));
 };
 
 const setExpiredOTPInMinutes = (minutes = 15) => {

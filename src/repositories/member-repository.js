@@ -167,8 +167,7 @@ const getDataByMemberParentId = async (memberId, param) => {
         rus.user_status_nm
       from
         "member" m
-      join reff_user_status rus on
-        rus.id = m.user_status_id
+      join reff_user_status rus on rus.id = m.user_status_id
       where
         m.id = :member_id
       union
@@ -182,10 +181,8 @@ const getDataByMemberParentId = async (memberId, param) => {
         rus.user_status_nm
       from
         "member" m
-      join reff_user_status rus on
-        rus.id = m.user_status_id
-      join downline b on
-        m.member_id_parent = b.id
+      join reff_user_status rus on rus.id = m.user_status_id
+      join downline b on m.member_id_parent = b.id
             )
       select
         *
@@ -494,6 +491,55 @@ const rekapMemberByStatus = async () => {
   return result;
 };
 
+const getDownlineMemberWithSelf = async (memberId) => {
+  let query = `
+    with recursive downline as (
+      select
+        m.id,
+        m.fullname,
+        m.email,
+        m.user_status_id,
+        m.referal_code,
+        m.member_id_parent,
+        rus.user_status_nm,
+        r.ranking_nm
+      from
+        "member" m
+      join reff_user_status rus on rus.id = m.user_status_id
+      left join ranking r on r.id = m.ranking_id
+      where
+        m.id = :member_id
+      union
+      select
+        m.id,
+        m.fullname,
+        m.email,
+        m.user_status_id,
+        m.referal_code,
+        m.member_id_parent,
+        rus.user_status_nm,
+        r.ranking_nm
+      from
+        "member" m
+      join reff_user_status rus on rus.id = m.user_status_id
+      join downline b on m.member_id_parent = b.id
+      left join ranking r on r.id = m.ranking_id
+            )
+      select
+        *
+      from
+        downline d
+  `;
+
+  const [results] = await db.query(query, {
+    replacements: {
+      member_id: memberId,
+    },
+  });
+
+  return results;
+};
+
 module.exports = {
   getDataByEmail,
   getDataByReferalCode,
@@ -511,4 +557,5 @@ module.exports = {
   getTotalDownlineByParentIdAndStatus,
   getMemberDirectDownlineWithTotal,
   rekapMemberByStatus,
+  getDownlineMemberWithSelf,
 };
