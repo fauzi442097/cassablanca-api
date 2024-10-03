@@ -8,7 +8,10 @@ const coinController = require("../controllers/config/coin-controller");
 const validateRequest = require("../middleware/validate-request");
 const { levelSchema } = require("../validation/ranking-validation");
 const { productSchema } = require("../validation/product-validation");
-const { walletSchema } = require("../validation/wallet-validation");
+const {
+  walletSchema,
+  deletWalletSchema,
+} = require("../validation/wallet-validation");
 const { coinSchema } = require("../validation/coin-validation");
 
 const router = express.Router();
@@ -44,11 +47,15 @@ router.post(
 router.delete("/product/:productId", productController.deleteProduct);
 module.exports = router;
 
-// ADDRESS
+// WALLET
 router.get("/wallet", walletController.getWallets);
 router.get("/wallet/admin", walletController.getWalletAdmin);
 router.get("/wallet/:walletId", walletController.getWalletById);
-router.delete("/wallet/:walletId", walletController.deleteWalletById);
+router.delete(
+  "/wallet/:walletId",
+  validateRequest(deletWalletSchema),
+  walletController.deleteWalletById
+);
 router.post(
   "/wallet",
   validateRequest(walletSchema),

@@ -41,8 +41,8 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.DATE,
         allowNull: true,
       },
-      verified: {
-        type: DataTypes.BOOLEAN,
+      address_temp: {
+        type: DataTypes.STRING,
         allowNull: true,
       },
     },

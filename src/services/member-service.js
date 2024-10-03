@@ -151,28 +151,6 @@ const verificationMember = async (memberId, userLoginId) => {
       transaction
     );
 
-    // Log audit order
-    let dataAudit = {
-      user_id: userLoginId,
-      event: `Approve verification payment member ${currentMember.fullname}`,
-      model_id: orderPending.id,
-      model_name: orders.tableName,
-      old_values: orderPending,
-      new_values: orderUpdated,
-    };
-    await auditService.store(dataAudit, transaction);
-
-    // Log audit member
-    dataAudit = {
-      user_id: userLoginId,
-      event: `Update ranking member ${currentMember.fullname}`,
-      model_id: currentMember.id,
-      model_name: member.tableName,
-      old_values: currentMember,
-      new_values: memberUpdated,
-    };
-    await auditService.store(dataAudit, transaction);
-
     const dataBallance = {
       user_id: currentMember.id,
       curr_id: "ORE",
@@ -189,6 +167,17 @@ const verificationMember = async (memberId, userLoginId) => {
       orderPending,
       transaction
     );
+
+    // Log audit member
+    const dataAudit = {
+      user_id: userLoginId,
+      event: `Activate member ${currentMember.fullname}`,
+      model_id: currentMember.id,
+      model_name: member.tableName,
+      old_values: currentMember,
+      new_values: memberUpdated,
+    };
+    await auditService.store(dataAudit, transaction);
   });
 };
 
@@ -295,8 +284,6 @@ const calculateComponentBonus = async (order, componentBonus, transaction) => {
     const t = (totalActivation * componentBonus) / 100;
     const totalUSDT = (t * sharingPctUSDT) / 100;
     const totalORE = (t * sharingPctProduct) / 100 / product.price;
-
-    console.log({ totalUSDT, totalORE });
 
     const DTOBonus = [
       {
@@ -477,9 +464,13 @@ const createWallet = async (data, userLogin) => {
   const userId = userLogin.id;
   const roleId = userLogin.role_id;
 
-  const currentWallet = await walletRepository.getWalletByUserIdAndCoinId(
+  const walletTypeId = "withdrawal";
+
+  const currentWallet = await walletRepository.getWalletUniqueMember(
     userId,
-    data.coin_id
+    data.coin_id,
+    walletTypeId,
+    data.address
   );
   if (currentWallet) throw new ResponseError("Wallet already exists", 400);
 
@@ -491,11 +482,10 @@ const createWallet = async (data, userLogin) => {
 
   const walletDTO = {
     coin_id: data.coin_id,
-    address: data.address,
     user_id: userId,
-    verified: false,
     otp: otp,
     expired_otp: expiredOTP,
+    address_temp: data.address,
   };
 
   if (roleId == ROLE.MEMBER) {
@@ -530,6 +520,13 @@ const updateWallet = async (data, userLogin) => {
 
   if (!currentWallet) throw new ResponseError("Wallet not found", 400);
 
+  if (currentWallet.address_temp) {
+    throw new ResponseError(
+      "Update failed. Please verify your data before updating your wallet information",
+      400
+    );
+  }
+
   const otp = generateOtp();
   const expiredOTP = setExpiredOTPInMinutes(15);
 
@@ -537,8 +534,7 @@ const updateWallet = async (data, userLogin) => {
   await sendEmailOTPWallet(otp, member.email);
 
   const walletDTO = {
-    address: data.address,
-    verified: false,
+    address_temp: data.address,
     otp: otp,
     expired_otp: expiredOTP,
   };
@@ -553,7 +549,7 @@ const updateWallet = async (data, userLogin) => {
     // Log audit order
     let dataAudit = {
       user_id: userLogin.id,
-      event: `Ubah wallet`,
+      event: `Update wallet`,
       model_id: data.wallet_id,
       model_name: wallet.tableName,
       old_values: currentWallet,
@@ -577,10 +573,7 @@ const getSingWalletMemberById = async (memberId, walletId) => {
 };
 
 const verifyOTPWallet = async (dataOTP, userLoginId) => {
-  const currentWallet = await walletRepository.getDataByIdAndUserId(
-    dataOTP.wallet_id,
-    userLoginId
-  );
+  const currentWallet = await walletRepository.getDataById(dataOTP.wallet_id);
   if (!currentWallet) throw new ResponseError("Wallet not found", 400);
 
   const walletOtp = await walletRepository.getDataByOTP(dataOTP.otp);
@@ -601,6 +594,7 @@ const verifyOTPWallet = async (dataOTP, userLoginId) => {
   return withTransaction(async (transaction) => {
     const walletUpdated = await walletRepository.verificationWallet(
       dataOTP.wallet_id,
+      currentWallet.address_temp,
       transaction
     );
 
@@ -617,19 +611,14 @@ const verifyOTPWallet = async (dataOTP, userLoginId) => {
   });
 };
 
-const resendOTPWallet = async (data, userLoginId) => {
-  const currentWallet = await walletRepository.getDataByIdAndUserId(
-    data.wallet_id,
-    userLoginId
-  );
-
+const resendOTPWallet = async (data, emailUserLogin, userLoginId) => {
+  const currentWallet = await walletRepository.getDataById(data.wallet_id);
   if (!currentWallet) throw new ResponseError("Wallet not found", 400);
 
   const otp = generateOtp();
   const expiredOTP = setExpiredOTPInMinutes(15);
 
-  const member = await memberRepository.getDataById(userLoginId);
-  await sendEmailOTPWallet(otp, member.email);
+  await sendEmailOTPWallet(otp, emailUserLogin);
 
   const walletDTO = {
     otp: otp,

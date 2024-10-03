@@ -72,14 +72,14 @@ router.put(
 
 router.post(
   "/wallet/verify-otp",
-  authorize([ROLE.MEMBER]),
+  authorize([ROLE.MEMBER, ROLE.ADMIN_CONTINENTAL]),
   validateRequest(verifyOTPWalletSchema),
   memberController.verifyOTPWallet
 );
 
 router.post(
   "/wallet/verify-otp/resend",
-  authorize([ROLE.MEMBER]),
+  authorize([ROLE.MEMBER, ROLE.ADMIN_CONTINENTAL]),
   validateRequest(resendOTPWalletSchema),
   memberController.resendOTPWallet
 );

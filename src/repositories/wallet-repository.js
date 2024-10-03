@@ -1,14 +1,21 @@
+const { Op } = require("sequelize");
 const db = require("../config/database");
 const initModels = require("../models/init-models");
 
-const { wallet, reff_wallet_type, coin } = initModels(db);
+const { wallet, reff_wallet_type, coin, member } = initModels(db);
 
 const getAll = async () => {
   const data = await wallet.findAll({
+    attributes: { exclude: ["otp", "expired_otp"] },
     include: [
       {
         model: reff_wallet_type,
         as: "wallet_type",
+      },
+      {
+        attributes: ["email", "fullname"],
+        model: member,
+        as: "member",
       },
       {
         model: coin,
@@ -34,6 +41,11 @@ const getDataById = async (walletId) => {
       {
         model: reff_wallet_type,
         as: "wallet_type",
+      },
+      {
+        attributes: ["email", "fullname"],
+        model: member,
+        as: "member",
       },
       {
         model: coin,
@@ -175,10 +187,11 @@ const getDataByOTP = async (otp) => {
   });
 };
 
-const verificationWallet = async (walletId, transaction) => {
+const verificationWallet = async (walletId, address, transaction) => {
   return await wallet.update(
     {
-      verified: true,
+      address_temp: null,
+      address: address,
       otp: null,
       expired_otp: null,
     },
@@ -190,6 +203,28 @@ const verificationWallet = async (walletId, transaction) => {
       transaction,
     }
   );
+};
+
+const getWalletUniqueMember = async (
+  userId,
+  coinId,
+  wallet_type_id,
+  address
+) => {
+  return await wallet.findOne({
+    where: {
+      [Op.and]: [
+        {
+          user_id: userId,
+          coin_id: coinId,
+          wallet_type_id: wallet_type_id,
+        },
+        {
+          [Op.or]: [{ address_temp: address }, { address: address }],
+        },
+      ],
+    },
+  });
 };
 
 module.exports = {
@@ -207,4 +242,5 @@ module.exports = {
   getDataByIdAndUserId,
   getDataByOTP,
   verificationWallet,
+  getWalletUniqueMember,
 };

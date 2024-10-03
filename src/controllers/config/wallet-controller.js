@@ -27,19 +27,23 @@ const getWalletByUser = async (req, res) => {
 
 const storeWalletAdmin = tryCatch(async (req, res) => {
   const data = req.body;
+  data.user_email_login = req.user.email;
+
   await walletService.storeWallet(data);
   return Response.Success(res, null, "Data has been saved successfully");
 });
 
 const deleteWalletById = tryCatch(async (req, res) => {
   const { walletId } = req.params;
-  await walletService.deleteWalletById(walletId);
+  const data = req.body;
+  await walletService.deleteWalletById(walletId, data);
   return Response.Success(res, null, "Data has been deleted successfully");
 });
 
 const updateWalletById = tryCatch(async (req, res) => {
   const { walletId } = req.params;
   const data = req.body;
+  data.user_email_login = req.user.email;
   await walletService.updateWallet(walletId, data);
   return Response.Success(res, null, "Data has been saved successfully");
 });

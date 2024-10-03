@@ -65,6 +65,7 @@ function initModels(sequelize) {
     otherKey: "menu_id",
   });
   wallet.belongsTo(coin, { as: "coin", foreignKey: "coin_id" });
+  wallet.belongsTo(member, { as: "member", foreignKey: "user_id" });
   coin.hasMany(wallet, { as: "wallets", foreignKey: "coin_id" });
   withdrawal.belongsTo(coin, { as: "coin", foreignKey: "coin_id" });
   coin.hasMany(withdrawal, { as: "withdrawals", foreignKey: "coin_id" });

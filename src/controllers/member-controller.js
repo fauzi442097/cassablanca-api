@@ -119,7 +119,7 @@ const verifyOTPWallet = tryCatch(async (req, res) => {
 
 const resendOTPWallet = tryCatch(async (req, res) => {
   const data = req.body;
-  await memberService.resendOTPWallet(data, req.user.id);
+  await memberService.resendOTPWallet(data, req.user.email, req.user.id);
   return Response.Success(
     res,
     null,
