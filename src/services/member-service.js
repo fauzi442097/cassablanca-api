@@ -625,9 +625,6 @@ const resendOTPWallet = async (data, userLoginId) => {
 
   if (!currentWallet) throw new ResponseError("Wallet not found", 400);
 
-  if (currentWallet.verified)
-    throw new ResponseError("Unable to proceed. Data is already verified", 400);
-
   const otp = generateOtp();
   const expiredOTP = setExpiredOTPInMinutes(15);
 
