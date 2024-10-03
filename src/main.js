@@ -22,18 +22,18 @@ const corsOptions = {
     "192.168.57.49",
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "FETCH"],
-  // allowedHeaders: ["Content-Type", "Authorization"],
-  // exposedHeaders: ["Custom-Header"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  exposedHeaders: ["Custom-Header"],
   optionsSuccessStatus: 200,
 };
 
+app.use(express.static(path.join(__dirname, "../public")));
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
 
 /* Handling application/x-www-form-urlencoded */
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ limit: "10mb", extended: false }));
 
 // Middleware to log each request (activity)
 app.use(logActivities);

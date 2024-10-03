@@ -7,6 +7,8 @@ const models = initModels(db);
 const auditService = require("../services/audit-service.js");
 const ResponseError = require("../utils/response-error.js");
 
+const fileService = require("../services/file-service.js");
+
 const getAllData = async (modelName) => {
   const Model = models[modelName];
   const data = await Model.findAll();
@@ -122,9 +124,33 @@ const generateObjectData = async (data, refName, model, id = null) => {
     case "currency":
       formData = { id: helper.toSnakeCase(data.id).toUpperCase(), ...data };
       break;
-    case "chain":
-      formData = { id: helper.toSnakeCase(data.id), ...data };
+    case "chain": {
+      let pathFile = null;
+
+      if (id) {
+        const oldData = await model.findOne({
+          where: {
+            id: id,
+          },
+        });
+
+        pathFile = oldData.logo;
+        if (data.logo && oldData.logo) {
+          await fileService.checkAndRemoveFile(oldData.logo);
+        }
+      }
+
+      if (data.logo) {
+        pathFile = await fileService.saveFileBase64(
+          data.logo.content,
+          data.logo.filename,
+          "img"
+        );
+      }
+
+      formData = { id: helper.toSnakeCase(data.id), ...data, logo: pathFile };
       break;
+    }
     default:
       formData = data;
   }

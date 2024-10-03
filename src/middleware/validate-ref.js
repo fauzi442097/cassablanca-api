@@ -7,6 +7,7 @@ const {
   walletTypeSchema,
   withBonusStatusSchema,
   currencySchema,
+  chainSchema,
 } = require("../validation/referensi-validation");
 
 const validateRef = (req, res, next) => {
@@ -27,6 +28,9 @@ const validateRef = (req, res, next) => {
         break;
       case "currency":
         currencySchema.parse(req.body);
+        break;
+      case "chain":
+        chainSchema.parse(req.body);
         break;
     }
 

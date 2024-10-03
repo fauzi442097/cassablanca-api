@@ -58,7 +58,7 @@ const errorHandler = (err, req, res, next) => {
     url: req.originalUrl,
     stack: err.stack,
   });
-  return Response.Error(res, err.stack);
+  return Response.Error(res, err.stack, err.message);
 };
 
 module.exports = errorHandler;

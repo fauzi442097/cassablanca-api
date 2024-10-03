@@ -145,6 +145,7 @@ const sendEmailOTPWallet = async (otp, email) => {
   });
 };
 
+
 module.exports = {
   generateOtp,
   tryCatch,
