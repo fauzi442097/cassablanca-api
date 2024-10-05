@@ -23,6 +23,7 @@ const getRangkings = async () => {
         ],
       },
     ],
+    order: [["lvl", "ASC"]],
   });
   return data;
 };

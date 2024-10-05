@@ -14,7 +14,7 @@ router.get(
 );
 
 router.get(
-  "/bonus/member",
+  "/bonus/member/:bonusStatus",
   authorize([ROLE.ADMIN_CASSABLANCA]),
   adminController.bonusMember
 );

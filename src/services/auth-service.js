@@ -8,7 +8,7 @@ const jwt = require("jsonwebtoken");
 const ResponseError = require("../utils/response-error");
 const db = require("../config/database");
 const initModels = require("../models/init-models");
-const { users, member } = initModels(db);
+const { users, member, ranking } = initModels(db);
 const auditService = require("../services/audit-service");
 const walletService = require("../services/wallet-service");
 
@@ -72,11 +72,26 @@ const verifyOTPService = async (otp) => {
     );
   }
 
+  const dataMember = await memberRepository.getDataById(user.id, {
+    include: [
+      {
+        model: ranking,
+        as: "ranking",
+      },
+    ],
+  });
+
+  let rankingName = null;
+  if (dataMember) {
+    rankingName = dataMember.ranking ? dataMember.ranking.ranking_nm : null;
+  }
+
   const payload = {
     email: user.email,
     id: user.id,
     full_name: user.fullname,
     role_id: user.role_id,
+    ranking: rankingName,
   };
 
   const token = jwt.sign(payload, process.env.JWT_SECRET, {
@@ -100,6 +115,7 @@ const verifyOTPService = async (otp) => {
       email: user.email,
       full_name: user.fullname,
       role_id: user.role_id,
+      ranking: rankingName,
     },
   };
 };

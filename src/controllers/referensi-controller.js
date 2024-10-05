@@ -36,10 +36,18 @@ const update = tryCatch(async (req, res) => {
   return Response.Success(res, null, "Data has been saved successfully");
 });
 
+const minimumWithdrawal = async (req, res) => {
+  const { type } = req.query;
+  const data = await referensiService.getMinimumWithdrawal(type);
+  if (!data) return Response.NotFound(res, "Data not found");
+  return Response.Success(res, data);
+};
+
 module.exports = {
   getAll,
   getById,
   store,
   update,
   deleteById,
+  minimumWithdrawal,
 };

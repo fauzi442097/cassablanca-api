@@ -50,7 +50,7 @@ const getRequestObject = () => {
   return asyncLocalStorage.getStore().get("req");
 };
 
-const generateReferralCode = (length = 8) => {
+const generateReferralCode = (length = 6) => {
   // Define the characters to use in the referral code
   const characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -107,9 +107,14 @@ const buildTree = (members, parentId = null) => {
   // const tree = [];
   // for (const member of members) {
   //   if (member.member_id_parent === parentId) {
-  //     // Recursively find children
-  //     member.downlines = buildTree(members, member.id);
-  //     tree.push(member);
+  //     const children = buildTree(members, member.id);
+  //     tree.push({
+  //       id: member.id,
+  //       name: member.fullname,
+  //       photo: member.photo_url,
+  //       attributes: { ranking: member.ranking_nm },
+  //       children,
+  //     });
   //   }
   // }
   // return tree;
@@ -119,6 +124,7 @@ const buildTree = (members, parentId = null) => {
     .map((member) => ({
       id: member.id,
       name: member.fullname,
+      photo: member.photo_url,
       attributes: { ranking: member.ranking_nm },
       children: buildTree(members, member.id),
     }));
@@ -144,7 +150,6 @@ const sendEmailOTPWallet = async (otp, email) => {
       <p>Terima kasih</p>,`, // html body
   });
 };
-
 
 module.exports = {
   generateOtp,

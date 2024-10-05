@@ -32,9 +32,32 @@ const registerMemberSchema = z.object({
   parent_id: z.number().positive().nullable(),
 });
 
+const updateProfileSchema = z.object({
+  full_name: z
+    .string({ required_error: "Required" })
+    .min(1, "Required")
+    .max(50),
+  email: z.string({ required_error: "Required" }).min(1, "Required").email(),
+  photo_url: z
+    .object({
+      filename: z.string().min(1, "Filename is required.").nullable(),
+      content: z.string().refine(
+        (data) => {
+          return /^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,/.test(data);
+        },
+        {
+          message: "Invalid Base64 string.",
+        }
+      ),
+    })
+    .nullable()
+    .optional(),
+});
+
 module.exports = {
   requestOTPValidation,
   requestVerifyOtpValidation,
   signUpSchema,
   registerMemberSchema,
+  updateProfileSchema,
 };

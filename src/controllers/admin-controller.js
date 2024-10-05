@@ -8,10 +8,11 @@ const walletAdmin = async (req, res) => {
   return Response.Success(res, data);
 };
 
-const bonusMember = async (req, res) => {
-  const data = await adminService.getBonusMember(req.query);
+const bonusMember = tryCatch(async (req, res) => {
+  const { bonusStatus } = req.params;
+  const data = await adminService.getBonusMember(bonusStatus, req.query);
   return Response.Success(res, data);
-};
+});
 
 const distributeBonus = tryCatch(async (req, res) => {
   const { id_members } = req.body;

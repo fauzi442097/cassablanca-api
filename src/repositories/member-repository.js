@@ -164,10 +164,12 @@ const getDataByMemberParentId = async (memberId, param) => {
         m.user_status_id,
         m.referal_code,
         m.member_id_parent,
+        m2.fullname as parent,
         rus.user_status_nm
       from
         "member" m
       join reff_user_status rus on rus.id = m.user_status_id
+      left join member m2 on m2.id = m.member_id_parent
       where
         m.id = :member_id
       union
@@ -178,11 +180,13 @@ const getDataByMemberParentId = async (memberId, param) => {
         m.user_status_id,
         m.referal_code,
         m.member_id_parent,
+        m3.fullname as parent,
         rus.user_status_nm
       from
         "member" m
       join reff_user_status rus on rus.id = m.user_status_id
       join downline b on m.member_id_parent = b.id
+      left join member m3 on m3.id = m.member_id_parent
             )
       select
         *
@@ -501,8 +505,10 @@ const getDownlineMemberWithSelf = async (memberId) => {
         m.user_status_id,
         m.referal_code,
         m.member_id_parent,
+        m.photo_url,
         rus.user_status_nm,
-        r.ranking_nm
+        r.ranking_nm,
+        1 as level
       from
         "member" m
       join reff_user_status rus on rus.id = m.user_status_id
@@ -517,8 +523,10 @@ const getDownlineMemberWithSelf = async (memberId) => {
         m.user_status_id,
         m.referal_code,
         m.member_id_parent,
+        m.photo_url,
         rus.user_status_nm,
-        r.ranking_nm
+        r.ranking_nm,
+        b.level + 1 as level
       from
         "member" m
       join reff_user_status rus on rus.id = m.user_status_id
@@ -526,7 +534,18 @@ const getDownlineMemberWithSelf = async (memberId) => {
       left join ranking r on r.id = m.ranking_id
             )
       select
-        *
+        d.id,
+        d.fullname,
+        d.email,
+        d.user_status_id,
+        d.referal_code,
+        case
+          when d.level = 1 then null
+          else member_id_parent 
+        end as member_id_parent,
+        d.user_status_nm,
+        d.ranking_nm,
+        d.level
       from
         downline d
   `;

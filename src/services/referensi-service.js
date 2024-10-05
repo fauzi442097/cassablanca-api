@@ -158,10 +158,19 @@ const generateObjectData = async (data, refName, model, id = null) => {
   return formData;
 };
 
+const getMinimumWithdrawal = async (type) => {
+  return await models.reff_curr.findOne({
+    where: {
+      id: type,
+    },
+  });
+};
+
 module.exports = {
   getAllData,
   getDataById,
   store,
   update,
   deleteById,
+  getMinimumWithdrawal,
 };

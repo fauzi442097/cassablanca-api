@@ -12,17 +12,22 @@ const initModels = require("../models/init-models");
 const db = require("../config/database");
 const ResponseError = require("../utils/response-error");
 
-const { users_balance_trx, withdrawal } = initModels(db);
+const { users_balance_trx, withdrawal, reff_bonus_status } = initModels(db);
 
 const getWalletAdmin = async () => {
   return await walletRepository.getDataByUserId(0);
 };
 
-const getBonusMember = async (queryParams) => {
-  return await memberRepository.getTotalBonusByStatusOrder(
+const getBonusMember = async (bonusStatus, queryParams) => {
+  const refBonusStatus = await reff_bonus_status.findByPk(bonusStatus);
+  if (!refBonusStatus)
+    throw new ResponseError(`Invalid param value of '${bonusStatus}'`);
+  const bonus = await memberRepository.getTotalBonusByStatusOrder(
     queryParams,
-    "unrealized"
+    bonusStatus
   );
+
+  return bonus;
 };
 
 const distributBonusMember = async (idMembers, userLoginId) => {

@@ -60,7 +60,7 @@ const registerMember = async (data, userId) => {
     user_status_id: STATUS_USER.INACTIVE,
     role_id: ROLE.MEMBER,
     referal_code: generateReferralCode(),
-    member_id_parent: data.parent_id,
+    member_id_parent: data.parent_id || userId,
   };
 
   return withTransaction(async (transaction) => {
@@ -355,6 +355,7 @@ const rejectVerificationMember = async (memberId, userLoginId) => {
 const getMemberTree = async (parentId) => {
   let membersJSON;
   let result;
+
   if (parentId) {
     membersJSON = await memberRepository.getDownlineMemberWithSelf(parentId);
     const [memberTree] = buildTree(membersJSON);
