@@ -60,7 +60,7 @@ const registerMember = async (data, userId) => {
     user_status_id: STATUS_USER.INACTIVE,
     role_id: ROLE.MEMBER,
     referal_code: generateReferralCode(),
-    member_id_parent: data.parent_id || userId,
+    member_id_parent: data.parent_id,
   };
 
   return withTransaction(async (transaction) => {
@@ -390,7 +390,7 @@ const blockMember = async (memberId, userLoginId) => {
   return withTransaction(async (transaction) => {
     const blockedUser = await memberRepository.updateStatusMember(
       memberId,
-      { 
+      {
         user_status_id: STATUS_USER.BLOCKED,
         old_user_status_id: currentMember.user_status_id,
       },
@@ -417,7 +417,7 @@ const unBlockMember = async (memberId, userLoginId) => {
   return withTransaction(async (transaction) => {
     const unblocked = await memberRepository.updateStatusMember(
       memberId,
-      { 
+      {
         user_status_id: currentMember.old_user_status_id,
         old_user_status_id: null,
       },
@@ -553,7 +553,9 @@ const createWallet = async (data, userLogin) => {
     };
     await auditService.store(dataAudit, transaction);
 
-    const {otp, expired_otp, ...dataRespose} = walletCreated.get({ plain: true });
+    const { otp, expired_otp, ...dataRespose } = walletCreated.get({
+      plain: true,
+    });
     return dataRespose;
   });
 };
@@ -604,7 +606,7 @@ const updateWallet = async (data, userLogin) => {
     await auditService.store(dataAudit, transaction);
 
     const [result] = walletUpdated[1];
-    const {otp, expired_otp, ...dataRespose} = result.get({ plain: true });
+    const { otp, expired_otp, ...dataRespose } = result.get({ plain: true });
     return dataRespose;
   });
 };
@@ -768,5 +770,5 @@ module.exports = {
   getBalanceMember,
   getHistoryTransactionBalance,
   getHistoryWithdrawal,
-  unBlockMember
+  unBlockMember,
 };

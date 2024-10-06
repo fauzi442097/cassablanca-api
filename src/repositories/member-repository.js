@@ -41,6 +41,14 @@ const getAll = async (param) => {
     whereClause.user_status_id = status;
   }
 
+  if (param.type && param.type == "genesis") {
+    whereClause.member_id_parent = null;
+  } else if (param.type && param.type == "regular") {
+    whereClause.member_id_parent = {
+      [Op.not]: null,
+    };
+  }
+
   if (search) {
     whereClause[Op.or] = [
       { fullname: { [Op.iLike]: `%${search}%` } },
@@ -74,11 +82,13 @@ const getAll = async (param) => {
           model: ranking,
           as: "ranking",
         },
-        // {
-        //   model: member,
-        //   as: "children",
-        // },
+        {
+          attributes: ["email", "fullname"],
+          model: member,
+          as: "parent",
+        },
       ],
+      order: [["id", "DESC"]],
     });
 
     return {

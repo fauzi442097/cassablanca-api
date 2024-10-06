@@ -15,7 +15,7 @@ const ResponseError = require("../utils/response-error");
 const { users_balance_trx, withdrawal, reff_bonus_status } = initModels(db);
 
 const getWalletAdmin = async () => {
-  return await walletRepository.getDataByUserId(0);
+  return await walletRepository.getWalletAdminByType("deposit");
 };
 
 const getBonusMember = async (bonusStatus, queryParams) => {
@@ -80,9 +80,9 @@ const distributBonusMember = async (idMembers, userLoginId) => {
       // Update status
       const dataUpdated = await bonusRepository.setStatusToRealized(
         bonus.member_id,
-        { 
+        {
           bonus_status_id: "realized",
-          realized_at: new Date()
+          realized_at: new Date(),
         },
         transaction
       );
