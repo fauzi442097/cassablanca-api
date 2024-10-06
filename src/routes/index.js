@@ -28,8 +28,5 @@ router.get("/minimum-withdrawal", referensiController.minimumWithdrawal);
 router.use(authRouter);
 router.use(adminRoute);
 
-router.get("/", (req, res) => {
-  res.send("Welcome to API Cassablanca - MLM");
-});
 
 module.exports = router;

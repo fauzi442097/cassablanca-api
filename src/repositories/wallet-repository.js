@@ -22,6 +22,9 @@ const getAll = async () => {
         as: "coin",
       },
     ],
+    order: [
+      ["id", "DESC"]
+    ]
   });
   return data;
 };
@@ -137,7 +140,8 @@ const getAddressRequestActivation = async () => {
 };
 
 const getWalletAdminByType = async (type) => {
-  return await wallet.findOne({
+  return await wallet.findAll({
+    attributes: { exclude: ["otp", "expired_otp"] },
     include: [
       {
         model: reff_wallet_type,
@@ -152,6 +156,9 @@ const getWalletAdminByType = async (type) => {
       user_id: 0,
       wallet_type_id: type,
     },
+    order: [
+      ["id", "DESC"]
+    ]
   });
 };
 

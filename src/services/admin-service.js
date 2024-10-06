@@ -80,7 +80,10 @@ const distributBonusMember = async (idMembers, userLoginId) => {
       // Update status
       const dataUpdated = await bonusRepository.setStatusToRealized(
         bonus.member_id,
-        { bonus_status_id: "realized" },
+        { 
+          bonus_status_id: "realized",
+          realized_at: new Date()
+        },
         transaction
       );
 

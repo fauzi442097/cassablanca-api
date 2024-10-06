@@ -12,15 +12,19 @@ const auditService = require("../services/audit-service");
 const db = require("../config/database");
 const initModels = require("../models/init-models");
 const { Op } = require("sequelize");
+const { ROLE } = require("../utils/ref-value");
 
 const { wallet } = initModels(db);
 
-const getAllWallets = async () => {
+const getAllWallets = async (role_id) => {
+  if ( role_id == ROLE.ADMIN_CONTINENTAL ) {
+    return await walletRepository.getWalletAdminByType('deposit');
+  }
   return await walletRepository.getAll();
 };
 
 const getWalletAdmin = async () => {
-  return await walletRepository.getDataByUserId(0);
+  return await walletRepository.getWalletAdminByType('deposit');
 };
 
 const getWalletById = async (walletId) => {
@@ -73,6 +77,11 @@ const updateWallet = async (walletId, data) => {
     };
 
     await auditService.store(AuditDTO, transaction);
+
+    const [result] = walletCreated[1];
+
+    const {otp, expired_otp, ...dataRespose} = result.get({ plain: true });
+    return dataRespose
   });
 };
 
@@ -108,6 +117,8 @@ const storeWallet = async (data) => {
       new_values: dataCreated,
     };
     await auditService.store(AuditDTO, transaction);
+    const {otp, expired_otp, ...dataRespose} = dataCreated.get({ plain: true });
+    return dataRespose
   });
 };
 
@@ -115,8 +126,7 @@ const deleteWalletById = async (walletId, data) => {
   const dataExisting = await walletRepository.getDataById(walletId);
   if (!dataExisting) throw new ResponseError("Wallet not found", 404);
 
-  const walletOtp = await walletRepository.getDataByOTP(data.otp);
-  if (!walletOtp)
+  if (dataExisting.otp != data.otp)
     throw new ResponseError(
       "Invalid OTP. Please check the code and enter it again",
       401

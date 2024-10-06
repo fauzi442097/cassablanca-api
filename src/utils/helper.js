@@ -141,7 +141,7 @@ const sendEmailOTPWallet = async (otp, email) => {
   await transporter.sendMail({
     from: "Anonymous <jayden.gibson29@ethereal.email>", // sender address
     to: email, // list of receivers
-    subject: "Kode OTP untuk Verifikasi Login Anda", // Subject line
+    subject: "Kode OTP untuk Verifikasi Wallet", // Subject line
     html: `<p> Halo Fauzi, </p>
        <p> Terima kasih telah melakukan permintaan untuk memperbarui, membuat atau menghapus dompet withdraw Anda. Untuk melanjutkan, silakan masukkan kode OTP berikut untuk verifikasi: </p>
       <p> Kode OTP: </p>

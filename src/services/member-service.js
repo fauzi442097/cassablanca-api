@@ -390,7 +390,10 @@ const blockMember = async (memberId, userLoginId) => {
   return withTransaction(async (transaction) => {
     const blockedUser = await memberRepository.updateStatusMember(
       memberId,
-      { user_status_id: STATUS_USER.BLOCKED },
+      { 
+        user_status_id: STATUS_USER.BLOCKED,
+        old_user_status_id: currentMember.user_status_id,
+      },
       transaction
     );
 
@@ -402,6 +405,33 @@ const blockMember = async (memberId, userLoginId) => {
       model_name: member.tableName,
       old_values: currentMember,
       new_values: blockedUser,
+    };
+    await auditService.store(dataAudit, transaction);
+  });
+};
+
+const unBlockMember = async (memberId, userLoginId) => {
+  const currentMember = await memberRepository.getDataById(memberId);
+  if (!currentMember) throw new ResponseError("Data Member not found", 404);
+
+  return withTransaction(async (transaction) => {
+    const unblocked = await memberRepository.updateStatusMember(
+      memberId,
+      { 
+        user_status_id: currentMember.old_user_status_id,
+        old_user_status_id: null,
+      },
+      transaction
+    );
+
+    // Log audit order
+    let dataAudit = {
+      user_id: userLoginId,
+      event: `Unblock member ${currentMember.fullname}`,
+      model_id: memberId,
+      model_name: member.tableName,
+      old_values: currentMember,
+      new_values: unblocked,
     };
     await auditService.store(dataAudit, transaction);
   });
@@ -523,7 +553,8 @@ const createWallet = async (data, userLogin) => {
     };
     await auditService.store(dataAudit, transaction);
 
-    return walletCreated;
+    const {otp, expired_otp, ...dataRespose} = walletCreated.get({ plain: true });
+    return dataRespose;
   });
 };
 
@@ -573,7 +604,8 @@ const updateWallet = async (data, userLogin) => {
     await auditService.store(dataAudit, transaction);
 
     const [result] = walletUpdated[1];
-    return result;
+    const {otp, expired_otp, ...dataRespose} = result.get({ plain: true });
+    return dataRespose;
   });
 };
 
@@ -591,8 +623,9 @@ const verifyOTPWallet = async (dataOTP, userLoginId) => {
   const currentWallet = await walletRepository.getDataById(dataOTP.wallet_id);
   if (!currentWallet) throw new ResponseError("Wallet not found", 400);
 
-  const walletOtp = await walletRepository.getDataByOTP(dataOTP.otp);
-  if (!walletOtp)
+  // const walletOtp = await walletRepository.getDataByOTP(dataOTP.otp);
+
+  if (currentWallet.otp != dataOTP.otp)
     throw new ResponseError(
       "Invalid OTP. Please check the code and enter it again",
       401
@@ -735,4 +768,5 @@ module.exports = {
   getBalanceMember,
   getHistoryTransactionBalance,
   getHistoryWithdrawal,
+  unBlockMember
 };

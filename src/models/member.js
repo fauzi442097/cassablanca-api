@@ -73,6 +73,14 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.STRING,
         allowNull: true,
       },
+      old_user_status_id: {
+        type: DataTypes.SMALLINT,
+        allowNull: true,
+        references: {
+          model: "reff_user_status",
+          key: "id",
+        },
+      },
     },
     {
       sequelize,

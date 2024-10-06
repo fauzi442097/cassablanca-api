@@ -65,6 +65,12 @@ const blockMember = tryCatch(async (req, res) => {
   return Response.Success(res, null, "Member has been successfully blocked.");
 });
 
+const unBlockMember = tryCatch(async (req, res) => {
+  const { memberId } = req.params;
+  await memberService.unBlockMember(memberId, req.user.id);
+  return Response.Success(res, null, "Member has been successfully ublocked.");
+});
+
 const getWalletMember = async (req, res) => {
   const { memberId } = req.params;
   validateAccessResource(res, req, memberId);
@@ -195,4 +201,5 @@ module.exports = {
   historyTransactionBalance,
   getTransactionWithdrawal,
   listVerificationMember,
+  unBlockMember
 };

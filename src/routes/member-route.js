@@ -135,6 +135,11 @@ router.post(
   authorize([ROLE.ADMIN_CONTINENTAL]),
   memberController.blockMember
 );
+router.post(
+  "/:memberId/unblock",
+  authorize([ROLE.ADMIN_CONTINENTAL]),
+  memberController.unBlockMember
+);
 
 // BALANCE
 router.get(
