@@ -196,6 +196,11 @@ const getRangkingById = async (rankingId) => {
             model: reff_ranking_req_type,
             as: "ranking_req_type",
           },
+          {
+            attributes: ["id", "ranking_nm"],
+            model: ranking,
+            as: "ranking_member",
+          },
         ],
       },
     ],
