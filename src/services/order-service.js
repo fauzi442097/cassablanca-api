@@ -67,6 +67,11 @@ const confirmPaymentMember = async (data) => {
   });
 };
 
+const getAll = async (params) => {
+  return await orderRepository.getAll(params);
+};
+
 module.exports = {
   confirmPaymentMember,
+  getAll,
 };

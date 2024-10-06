@@ -104,30 +104,31 @@ const getRefTitle = (refName) => {
 };
 
 const buildTree = (members, parentId = null) => {
-  // const tree = [];
-  // for (const member of members) {
-  //   if (member.member_id_parent === parentId) {
-  //     const children = buildTree(members, member.id);
-  //     tree.push({
-  //       id: member.id,
-  //       name: member.fullname,
-  //       photo: member.photo_url,
-  //       attributes: { ranking: member.ranking_nm },
-  //       children,
-  //     });
-  //   }
-  // }
-  // return tree;
+  const tree = [];
+  for (const member of members) {
+    if (member.member_id_parent === parentId) {
+      const children = buildTree(members, member.id);
+      console.log({ member });
+      tree.push({
+        id: member.id,
+        name: member.fullname,
+        photo: member.photo_url,
+        attributes: { ranking: member.ranking_nm },
+        children,
+      });
+    }
+  }
+  return tree;
 
-  return members
-    .filter((member) => member.member_id_parent === parentId)
-    .map((member) => ({
-      id: member.id,
-      name: member.fullname,
-      photo: member.photo_url,
-      attributes: { ranking: member.ranking_nm },
-      children: buildTree(members, member.id),
-    }));
+  // return members
+  //   .filter((member) => member.member_id_parent === parentId)
+  //   .map((member) => ({
+  //     id: member.id,
+  //     name: member.fullname,
+  //     photo: member.photo_url,
+  //     attributes: { ranking: member.ranking_nm },
+  //     children: buildTree(members, member.id),
+  //   }));
 };
 
 const setExpiredOTPInMinutes = (minutes = 15) => {

@@ -13,7 +13,13 @@ const getRangkings = async () => {
     include: [
       {
         model: ranking_req,
-        attributes: ["id", "ranking_req_type_id", "value", "curr_id"],
+        attributes: [
+          "id",
+          "ranking_req_type_id",
+          "value",
+          "curr_id",
+          "ranking_id_member",
+        ],
         as: "ranking_reqs",
         include: [
           {

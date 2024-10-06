@@ -63,10 +63,11 @@ const getAll = async (param) => {
           model: reff_user_status,
           as: "user_status",
         },
-        // {
-        //   model: member,
-        //   as: "parent",
-        // },
+        {
+          attributes: ["id", "ranking_nm"],
+          model: ranking,
+          as: "ranking",
+        },
         // {
         //   model: member,
         //   as: "children",

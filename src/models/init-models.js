@@ -121,7 +121,7 @@ function initModels(sequelize) {
   role_menu.belongsTo(reff_menu, { as: "menu", foreignKey: "menu_id" });
   reff_menu.hasMany(role_menu, { as: "role_menus", foreignKey: "menu_id" });
   orders.belongsTo(reff_order_status, {
-    as: "order_st",
+    as: "order_status",
     foreignKey: "order_sts_id",
   });
   reff_order_status.hasMany(orders, {

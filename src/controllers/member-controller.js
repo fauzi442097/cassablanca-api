@@ -2,6 +2,7 @@ const { tryCatch, getUserLogin } = require("../utils/helper");
 const Response = require("../utils/response-handler");
 
 const memberService = require("../services/member-service");
+const orderService = require("../services/order-service");
 const walletService = require("../services/wallet-service");
 const { ROLE } = require("../utils/ref-value");
 
@@ -28,6 +29,13 @@ const registerMember = tryCatch(async (req, res) => {
   const data = req.body;
   await memberService.registerMember(data, req.user.id);
   return Response.Success(res, null, "Registration successful");
+});
+
+const listVerificationMember = tryCatch(async (req, res) => {
+  const { page, size, search } = req.query;
+  const dataParam = { page, size, search };
+  const data = await orderService.getAll(dataParam);
+  return Response.Success(res, data);
 });
 
 const verificationMember = tryCatch(async (req, res) => {
@@ -186,4 +194,5 @@ module.exports = {
   balanceMember,
   historyTransactionBalance,
   getTransactionWithdrawal,
+  listVerificationMember,
 };

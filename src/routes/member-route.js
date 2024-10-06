@@ -112,6 +112,13 @@ router.post(
   memberController.registerMember
 );
 
+// VERIFICATION
+router.get(
+  "/verification",
+  authorize([ROLE.ADMIN_CONTINENTAL]),
+  memberController.listVerificationMember
+);
+
 router.post(
   "/:memberId/verification",
   authorize([ROLE.ADMIN_CONTINENTAL]),

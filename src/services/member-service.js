@@ -147,7 +147,10 @@ const verificationMember = async (memberId, userLoginId) => {
     // Update level member activation to silver
     const memberUpdated = await memberRepository.updateStatusMember(
       memberId,
-      { ranking_id: "silver" },
+      {
+        ranking_id: "silver",
+        order_status_id: STATUS_USER.ACTIVE,
+      },
       transaction
     );
 
