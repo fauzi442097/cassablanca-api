@@ -3,7 +3,7 @@ const { tryCatch } = require("../../utils/helper");
 const Response = require("../../utils/response-handler");
 
 const getWallets = async (req, res) => {
-  const data = await walletService.getAllWallets();
+  const data = await walletService.getAllWallets(req.user.role_id);
   return Response.Success(res, data);
 };
 
@@ -29,8 +29,8 @@ const storeWalletAdmin = tryCatch(async (req, res) => {
   const data = req.body;
   data.user_email_login = req.user.email;
 
-  await walletService.storeWallet(data);
-  return Response.Success(res, null, "Data has been saved successfully");
+  const response = await walletService.storeWallet(data);
+  return Response.Success(res, response, "Data has been saved successfully and an OTP has been sent to your email");
 });
 
 const deleteWalletById = tryCatch(async (req, res) => {
@@ -44,8 +44,8 @@ const updateWalletById = tryCatch(async (req, res) => {
   const { walletId } = req.params;
   const data = req.body;
   data.user_email_login = req.user.email;
-  await walletService.updateWallet(walletId, data);
-  return Response.Success(res, null, "Data has been saved successfully");
+  const response = await walletService.updateWallet(walletId, data);
+  return Response.Success(res, response, "Data has been saved successfully and an OTP has been sent to your email");
 });
 
 module.exports = {

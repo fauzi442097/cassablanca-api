@@ -26,6 +26,13 @@ const requestOTPService = async (email) => {
       401
     );
 
+  if ( user.user_status_id == STATUS_USER.BLOCKED ) 
+    throw new ResponseError(
+      "Your account has been blocked. Please contact admin",
+      403
+    );
+
+
   const otp = generateOtp();
 
   // send mail with defined transport object

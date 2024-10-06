@@ -4,7 +4,9 @@ const initModels = require("../models/init-models");
 const { product } = initModels(db);
 
 const getAll = async () => {
-  const data = await product.findAll();
+  const data = await product.findAll({
+    order: [['id', 'DESC']],
+  });
   return data;
 };
 

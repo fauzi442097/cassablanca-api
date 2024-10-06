@@ -7,9 +7,15 @@ const { ranking, ranking_req, reff_ranking_req_type } = initModels(db);
 const rankingRepository = require("../repositories/ranking-repository.js");
 const rankingReqRepository = require("../repositories/ranking-req-repository.js");
 const auditService = require("../services/audit-service.js");
+const { Op } = require("sequelize");
 
 const getRangkings = async () => {
   const data = await rankingRepository.getAll({
+    where: {
+      lvl: {
+        [Op.ne]: 0 // Exclude Bronze
+      }
+    },
     include: [
       {
         model: ranking_req,

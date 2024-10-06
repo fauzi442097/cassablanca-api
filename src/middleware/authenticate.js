@@ -35,6 +35,7 @@ const authenticateJWT = (req, res, next) => {
     "/api/verify-otp",
     "/api/sign-up",
     "/api",
+    "/"
   ];
 
   if (routePublic.includes(req.path)) {

@@ -20,6 +20,7 @@ const corsOptions = {
     "::1",
     "http://127.0.0.1:5500",
     "192.168.57.49",
+    "https://76b0-103-57-39-110.ngrok-free.app"
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "FETCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -42,6 +43,9 @@ app.use(logActivities);
 app.use(authenticateJWT);
 
 app.use("/api", routes);
+app.get("/", (req, res) => {
+  res.send("Welcome to API Cassablanca - MLM");
+});
 app.use((req, res, next) => Response.NotFound(res));
 
 // Middleware Global error handler
