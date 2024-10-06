@@ -138,7 +138,7 @@ const verificationMember = async (memberId, userLoginId) => {
   };
 
   return withTransaction(async (transaction) => {
-    const orderUpdated = await orderRepository.approveOrderById(
+    await orderRepository.approveOrderById(
       orderPending.id,
       dataApprove,
       transaction
@@ -149,7 +149,7 @@ const verificationMember = async (memberId, userLoginId) => {
       memberId,
       {
         ranking_id: "silver",
-        order_status_id: STATUS_USER.ACTIVE,
+        user_status_id: STATUS_USER.ACTIVE,
       },
       transaction
     );
@@ -206,6 +206,7 @@ const calculateBonus = async (memberIdParent, order, transaction) => {
   let rankingRequirements = parentMember.ranking.ranking_reqs;
   const nextLevel = rankingParent.lvl + 1;
   const upRanking = await rankingRepository.getDataByLevel(nextLevel);
+
   if (upRanking) {
     // get requirement from next level
     rankingRequirements = upRanking.ranking_reqs;
@@ -218,20 +219,23 @@ const calculateBonus = async (memberIdParent, order, transaction) => {
   const directMemberCount = rankingRequirements.find(
     (item) => item.ranking_req_type_id == "direct_member_cnt"
   ).value;
-  const rankingLine = rankingRequirements.find(
+  const rankingLine = rankingRequirements.filter(
     (item) => item.ranking_req_type_id == "ranking_member_cnt"
   );
 
   let requirementTotalLine = true;
   if (rankingLine) {
-    // Get ranking downline by rules
-    const rankingLineCount = rankingLine.value;
-    const downineRankCount =
-      await memberRepository.getTotalDownlineByParentAndRankingId(
-        parentMember.id,
-        rankingLine.ranking_id_member
-      );
-    requirementTotalLine = rankingLineCount == downineRankCount;
+    for (const rankingMember of rankingLine) {
+      const rankingLineCount = rankingMember.value;
+      // Get ranking downline by rules
+      const downLineRankCount =
+        await memberRepository.getTotalDownlineByParentAndRankingId(
+          parentMember.id,
+          rankingMember.ranking_id_member
+        );
+
+      requirementTotalLine = rankingLineCount == downLineRankCount;
+    }
   }
 
   const teamMembers =
@@ -248,7 +252,6 @@ const calculateBonus = async (memberIdParent, order, transaction) => {
   let directBonus = rankingParent.direct_bonus;
   let rankingBonus = rankingParent.ranking_bonus;
   let globalBonus = rankingParent.global_bonus;
-  order.member_id_parent = parentMember.id;
 
   if (
     teamMembers == teamMemberCount &&
@@ -267,6 +270,8 @@ const calculateBonus = async (memberIdParent, order, transaction) => {
     globalBonus = upRanking.global_bonus;
   }
 
+  // ASSING MEMBER ID PARENT TO ORDER
+  order.member_id_parent = parentMember.id;
   await calculateComponentBonus(order, directBonus, transaction);
   await calculateComponentBonus(order, rankingBonus, transaction);
   await calculateComponentBonus(order, globalBonus, transaction);
@@ -365,7 +370,13 @@ const getMemberTree = async (parentId) => {
     result = memberTree;
   } else {
     const data = await memberRepository.getAllWithoutPaging();
-    membersJSON = data.map((item) => item.toJSON());
+    membersJSON = data.map((item) => {
+      let itemJSON = item.toJSON();
+      return {
+        ...itemJSON,
+        ranking_nm: itemJSON.ranking ? itemJSON.ranking.ranking_nm : null,
+      };
+    });
     result = buildTree(membersJSON);
   }
 

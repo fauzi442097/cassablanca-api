@@ -88,7 +88,7 @@ function initModels(sequelize) {
     foreignKey: "ranking_id",
   });
   ranking_req.belongsTo(ranking, {
-    as: "ranking_id_member_ranking",
+    as: "ranking_member",
     foreignKey: "ranking_id_member",
   });
   ranking.hasMany(ranking_req, {

@@ -21,6 +21,12 @@ const getAllWithoutPaging = async (parentId) => {
         "role_id",
       ],
     },
+    include: [
+      {
+        model: ranking,
+        as: "ranking",
+      },
+    ],
     where: whereConditions,
   });
 };
