@@ -165,11 +165,13 @@ const verificationMember = async (memberId, userLoginId) => {
     // Add ORE Ballance
     await userBallanceRepository.storeBallance(dataBallance, transaction);
 
-    await calculateBonus(
-      currentMember.member_id_parent,
-      orderPending,
-      transaction
-    );
+    if (currentMember.member_id_parent) {
+      await calculateBonus(
+        currentMember.member_id_parent,
+        orderPending,
+        transaction
+      );
+    }
 
     // Log audit member
     const dataAudit = {
