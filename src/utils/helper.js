@@ -108,12 +108,14 @@ const buildTree = (members, parentId = null) => {
   for (const member of members) {
     if (member.member_id_parent === parentId) {
       const children = buildTree(members, member.id);
-      console.log({ member });
       tree.push({
         id: member.id,
         name: member.fullname,
-        photo: member.photo_url,
-        attributes: { ranking: member.ranking_nm },
+        image: member.photo_url,
+        attributes: {
+          ranking: member.ranking_nm || "Silver",
+          status: member.user_status_nm,
+        },
         children,
       });
     }

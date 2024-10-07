@@ -26,6 +26,10 @@ const getAllWithoutPaging = async (parentId) => {
         model: ranking,
         as: "ranking",
       },
+      {
+        model: reff_user_status,
+        as: "user_status",
+      },
     ],
     where: whereConditions,
   });
@@ -36,6 +40,8 @@ const getAll = async (param) => {
   let offset;
   let limitOffset;
   let whereClause = {};
+
+  console.log({ status });
 
   if (status && status != "") {
     whereClause.user_status_id = status;

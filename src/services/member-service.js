@@ -377,6 +377,7 @@ const getMemberTree = async (parentId) => {
       return {
         ...itemJSON,
         ranking_nm: itemJSON.ranking ? itemJSON.ranking.ranking_nm : null,
+        user_status_nm: itemJSON.user_status.user_status_nm,
       };
     });
     result = buildTree(membersJSON);
