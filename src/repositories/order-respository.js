@@ -69,6 +69,7 @@ const getHistoryOrder = async (params) => {
   let offset;
   let limit;
   let whereClause = {};
+  let whereOrder = {};
 
   if (params.search) {
     whereClause[Op.or] = [
@@ -82,6 +83,10 @@ const getHistoryOrder = async (params) => {
     offset = (params.page - 1) * params.size;
     limit = parseInt(params.size);
     queryType = "findAndCountAll";
+  }
+
+  if (params.status && params.status != "") {
+    whereOrder.order_sts_id = params.status;
   }
 
   const response = await orders[queryType]({
@@ -103,6 +108,7 @@ const getHistoryOrder = async (params) => {
         where: whereClause,
       },
     ],
+    where: whereOrder,
     order: [["id", "DESC"]],
     offset: offset,
     limit: limit,
@@ -191,7 +197,9 @@ const getAll = async (params) => {
       },
     ],
     where: {
-      order_sts_id: "waiting_approve",
+      order_sts_id: {
+        [Op.in]: ["waiting_approve", "reject"],
+      },
     },
     order: [["id", "DESC"]],
     offset: offset,
