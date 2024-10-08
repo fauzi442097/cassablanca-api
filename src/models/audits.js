@@ -23,7 +23,7 @@ module.exports = function (sequelize, DataTypes) {
       },
       auditable_id: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       old_values: {
         type: DataTypes.TEXT,

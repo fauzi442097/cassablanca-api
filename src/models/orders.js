@@ -73,6 +73,10 @@ module.exports = function (sequelize, DataTypes) {
           key: "id",
         },
       },
+      reject_reason: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
     },
     {
       sequelize,

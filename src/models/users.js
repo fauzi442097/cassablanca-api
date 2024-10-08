@@ -57,6 +57,10 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.SMALLINT,
         allowNull: true,
       },
+      email_verified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
     },
     {
       sequelize,

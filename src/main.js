@@ -20,7 +20,10 @@ const corsOptions = {
     "::1",
     "http://127.0.0.1:5500",
     "192.168.57.49",
-    "https://76b0-103-57-39-110.ngrok-free.app"
+    "https://76b0-103-57-39-110.ngrok-free.app",
+    "https://mv0ns0xs-3000.asse.devtunnels.ms",
+    "https://v9d842b9-3001.asse.devtunnels.ms",
+    "https://v9d842b9-3000.asse.devtunnels.ms",
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "FETCH"],
   allowedHeaders: ["Content-Type", "Authorization"],

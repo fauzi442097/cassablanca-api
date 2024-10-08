@@ -31,16 +31,22 @@ const { member, orders, ranking, ranking_req, withdrawal, wallet, reff_curr } =
 const activationRequestMember = async () => {
   const ranking = await rankingRepository.getActivationReq();
   const results = await walletRepository.getAddressRequestActivation();
-  const products = await productRepository.getAll();
+  const product = await productRepository.getDataById(1);
+
+  const totalUSDT = ranking.ranking_reqs ? ranking.ranking_reqs[0].value : 100;
+  const totalORE = totalUSDT / product.price;
 
   const data = {
     level: ranking.ranking_nm,
     type: ranking.ranking_req
       ? ranking.ranking_reqs[0].ranking_req_type_id
       : "activated",
-    amount: ranking.ranking_reqs ? ranking.ranking_reqs[0].value : 100,
+    activation_details: {
+      total_usdt_to_send: totalUSDT,
+      ore_balance_received: totalORE,
+    },
     recipient_address: results,
-    product: products,
+    product: product,
   };
 
   return data;
@@ -109,7 +115,10 @@ const getMembers = async (param) => {
 const verificationMember = async (memberId, userLoginId) => {
   const memId = Number(memberId);
   if (!Number.isInteger(memId) || memId <= 0) {
-    throw new ResponseError("Parameter must be numeric", 404);
+    throw new ResponseError(
+      "Invalid Parameter. Parameter must be numeric",
+      400
+    );
   }
 
   const currentMember = await memberRepository.getDataById(memberId);
@@ -274,16 +283,31 @@ const calculateBonus = async (memberIdParent, order, transaction) => {
 
   // ASSING MEMBER ID PARENT TO ORDER
   order.member_id_parent = parentMember.id;
-  await calculateComponentBonus(order, directBonus, transaction);
-  await calculateComponentBonus(order, rankingBonus, transaction);
-  await calculateComponentBonus(order, globalBonus, transaction);
+  await calculateComponentBonus("directBonus", order, directBonus, transaction);
+  await calculateComponentBonus(
+    "rankingBonus",
+    order,
+    rankingBonus,
+    transaction
+  );
+  await calculateComponentBonus(
+    "globalSharing",
+    order,
+    globalBonus,
+    transaction
+  );
 
   if (parentMember.member_id_parent) {
     await calculateBonus(parentMember.member_id_parent, order, transaction);
   }
 };
 
-const calculateComponentBonus = async (order, componentBonus, transaction) => {
+const calculateComponentBonus = async (
+  bonusType,
+  order,
+  componentBonus,
+  transaction
+) => {
   if (componentBonus != 0) {
     const totalActivation = order.total_price;
     const product = order.product;
@@ -301,25 +325,51 @@ const calculateComponentBonus = async (order, componentBonus, transaction) => {
         curr_id: "USDT",
         amount: totalUSDT,
         order_id: order.id,
-        bonus_status_id: "unrealized",
+        bonus_status_id:
+          bonusType == "globalSharing" ? "unrealized" : "realized",
+        realized_at: bonusType != "globalSharing" && new Date(),
       },
       {
         member_id: order.member_id_parent,
         curr_id: "ORE",
         amount: totalORE,
         order_id: order.id,
-        bonus_status_id: "unrealized",
+        bonus_status_id:
+          bonusType == "globalSharing" ? "unrealized" : "realized",
+        realized_at: bonusType != "globalSharing" && new Date(),
       },
     ];
-
     await bonusRepository.storeBonusUpline(DTOBonus, transaction);
+
+    if (bonusType != "globalSharing") {
+      const ballanceDTO = [
+        {
+          user_id: order.member_id_parent,
+          curr_id: "ORE",
+          amount: totalORE,
+          dbcr: 1,
+          description: "Kredit saldo ORE",
+        },
+        {
+          user_id: order.member_id_parent,
+          curr_id: "USDT",
+          amount: totalUSDT,
+          dbcr: 1,
+          description: "Kredit saldo USDT",
+        },
+      ];
+      await userBallanceRepository.storeBulkBallance(ballanceDTO, transaction);
+    }
   }
 };
 
-const rejectVerificationMember = async (memberId, userLoginId) => {
+const rejectVerificationMember = async (memberId, userLoginId, data) => {
   const memId = Number(memberId);
   if (!Number.isInteger(memId) || memId <= 0) {
-    throw new ResponseError("Parameter must be numeric", 404);
+    throw new ResponseError(
+      "Invalid Parameter. Parameter must be numeric",
+      400
+    );
   }
 
   const currentMember = await memberRepository.getDataById(memberId);
@@ -340,6 +390,7 @@ const rejectVerificationMember = async (memberId, userLoginId) => {
 
   const dataReject = {
     order_sts_id: "reject",
+    reject_reason: data.reason,
   };
 
   return withTransaction(async (transaction) => {
@@ -753,6 +804,47 @@ const getHistoryWithdrawal = async (userId, param) => {
   return await withdrawalRepository.getDataByUserId(userId, param);
 };
 
+const updateMember = async (memberId, data, userIdLogin) => {
+  const memId = Number(memberId);
+  if (!Number.isInteger(memId) || memId <= 0) {
+    throw new ResponseError(
+      "Invalid Parameter. Parameter must be numeric",
+      400
+    );
+  }
+
+  const currentMember = await memberRepository.getDataById(memberId);
+  if (!currentMember) throw new ResponseError("Data Member not found", 404);
+
+  if (currentMember.email_verified) {
+    throw new ResponseError(
+      "Member cannot be updated as the account has already been verified",
+      400
+    );
+  }
+
+  return withTransaction(async (transaction) => {
+    const updatedMember = await memberRepository.updateMember(
+      memberId,
+      {
+        email: data.email,
+      },
+      transaction
+    );
+
+    // Log audit order
+    let dataAudit = {
+      user_id: userIdLogin,
+      event: `Update member`,
+      model_id: memberId,
+      model_name: wallet.tableName,
+      old_values: currentMember,
+      new_values: updatedMember,
+    };
+    await auditService.store(dataAudit, transaction);
+  });
+};
+
 module.exports = {
   activationRequestMember,
   registerMember,
@@ -774,4 +866,5 @@ module.exports = {
   getHistoryTransactionBalance,
   getHistoryWithdrawal,
   unBlockMember,
+  updateMember,
 };

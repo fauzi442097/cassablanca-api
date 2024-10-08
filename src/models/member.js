@@ -81,6 +81,10 @@ module.exports = function (sequelize, DataTypes) {
           key: "id",
         },
       },
+      email_verified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
     },
     {
       sequelize,

@@ -38,6 +38,8 @@ const distributBonusMember = async (idMembers, userLoginId) => {
 
   const bonusMemberJSON = bonusMembers.map((item) => item.toJSON());
 
+  let arrIdCreated = [];
+
   return withTransaction(async (transaction) => {
     for (const bonus of bonusMemberJSON) {
       const ballanceDTO = [
@@ -62,23 +64,10 @@ const distributBonusMember = async (idMembers, userLoginId) => {
         transaction
       );
 
-      let auditDTO = {
-        user_id: userLoginId,
-        event: `Bonus distribution to member`,
-        model_id: ballanceCreated.map((item) => item.id).join(", "),
-        model_name: users_balance_trx.tableName,
-        new_values: ballanceCreated,
-      };
-      await auditService.store(auditDTO, transaction);
-
-      // get member status realized
-      const oldUserBallance = await bonusRepository.getBonusMemberByStatus(
-        bonus.member_id,
-        "unrealized"
-      );
+      arrIdCreated.push(ballanceCreated);
 
       // Update status
-      const dataUpdated = await bonusRepository.setStatusToRealized(
+      await bonusRepository.setStatusToRealized(
         bonus.member_id,
         {
           bonus_status_id: "realized",
@@ -86,17 +75,15 @@ const distributBonusMember = async (idMembers, userLoginId) => {
         },
         transaction
       );
-
-      auditDTO = {
-        user_id: userLoginId,
-        event: `Update status bonus member`,
-        model_id: oldUserBallance.map((item) => item.id).join(", "),
-        model_name: users_balance_trx.tableName,
-        old_values: oldUserBallance,
-        new_values: dataUpdated,
-      };
-      await auditService.store(auditDTO, transaction);
     }
+
+    let auditDTO = {
+      user_id: userLoginId,
+      event: `Distribute bonus to member`,
+      model_id: arrIdCreated.map((item) => item.id).join(", "),
+      model_name: users_balance_trx.tableName,
+    };
+    await auditService.store(auditDTO, transaction);
 
     return bonusMembers;
   });

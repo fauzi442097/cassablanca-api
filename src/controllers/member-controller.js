@@ -46,10 +46,8 @@ const verificationMember = tryCatch(async (req, res) => {
 
 const rejectVerificationMember = tryCatch(async (req, res) => {
   const { memberId } = req.params;
-  const data = await memberService.rejectVerificationMember(
-    memberId,
-    req.user.id
-  );
+  const data = req.body;
+  await memberService.rejectVerificationMember(memberId, req.user.id, data);
   return Response.Success(res, null, "Data has been successfully rejected");
 });
 
@@ -180,6 +178,13 @@ const validateAccessResource = (res, req, memberId) => {
   }
 };
 
+const updateMember = tryCatch(async (req, res) => {
+  const { memberId } = req.params;
+  const data = req.body;
+  await memberService.updateMember(memberId, data, req.user.id);
+  return Response.Success(res, null, "Data has been updated successfully");
+});
+
 module.exports = {
   activationRequest,
   registerMember,
@@ -201,5 +206,6 @@ module.exports = {
   historyTransactionBalance,
   getTransactionWithdrawal,
   listVerificationMember,
-  unBlockMember
+  unBlockMember,
+  updateMember,
 };

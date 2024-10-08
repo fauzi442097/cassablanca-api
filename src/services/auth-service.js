@@ -26,12 +26,11 @@ const requestOTPService = async (email) => {
       401
     );
 
-  if ( user.user_status_id == STATUS_USER.BLOCKED ) 
+  if (user.user_status_id == STATUS_USER.BLOCKED)
     throw new ResponseError(
       "Your account has been blocked. Please contact admin",
       403
     );
-
 
   const otp = generateOtp();
 
@@ -77,6 +76,10 @@ const verifyOTPService = async (otp) => {
       "OTP has expired. Please request a new code to continue",
       401
     );
+  }
+
+  if (!currentData.email_verified) {
+    await userRepository.setVerified(user.id);
   }
 
   const dataMember = await memberRepository.getDataById(user.id, {

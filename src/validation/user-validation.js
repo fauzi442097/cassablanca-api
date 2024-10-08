@@ -1,7 +1,11 @@
 const { z } = require("../config/zod-language");
 
 const requestOTPValidation = z.object({
-  email: z.string({ required_error: "Required" }).min(1, "Required").email(),
+  email: z
+    .string({ required_error: "Required" })
+    .min(1, "Required")
+    .max(100)
+    .email(),
 });
 
 const requestVerifyOtpValidation = z.object({
@@ -12,7 +16,11 @@ const requestVerifyOtpValidation = z.object({
 });
 
 const signUpSchema = z.object({
-  email: z.string({ required_error: "Required" }).min(1, "Required").email(),
+  email: z
+    .string({ required_error: "Required" })
+    .min(1, "Required")
+    .max(100)
+    .email(),
   full_name: z
     .string({ required_error: "Required" })
     .min(1, "Required")
@@ -24,7 +32,11 @@ const signUpSchema = z.object({
 });
 
 const registerMemberSchema = z.object({
-  email: z.string({ required_error: "Required" }).min(1, "Required").email(),
+  email: z
+    .string({ required_error: "Required" })
+    .min(1, "Required")
+    .max(100)
+    .email(),
   full_name: z
     .string({ required_error: "Required" })
     .min(1, "Required")
@@ -37,7 +49,11 @@ const updateProfileSchema = z.object({
     .string({ required_error: "Required" })
     .min(1, "Required")
     .max(50),
-  email: z.string({ required_error: "Required" }).min(1, "Required").email(),
+  email: z
+    .string({ required_error: "Required" })
+    .min(1, "Required")
+    .max(100)
+    .email(),
   photo_url: z
     .object({
       filename: z.string().min(1, "Filename is required.").nullable(),
@@ -54,10 +70,19 @@ const updateProfileSchema = z.object({
     .optional(),
 });
 
+const updateMemberSchema = z.object({
+  email: z
+    .string({ required_error: "Required" })
+    .min(1, "Required")
+    .max(100)
+    .email(),
+});
+
 module.exports = {
   requestOTPValidation,
   requestVerifyOtpValidation,
   signUpSchema,
   registerMemberSchema,
   updateProfileSchema,
+  updateMemberSchema,
 };

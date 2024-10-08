@@ -3,6 +3,7 @@ const ResponseError = require("../utils/response-error");
 const productRepository = require("../repositories/product-repository");
 const walletRepository = require("../repositories/wallet-repository");
 const orderRepository = require("../repositories/order-respository");
+const rankingRepository = require("../repositories/ranking-repository");
 
 const auditService = require("../services/audit-service");
 const initModels = require("../models/init-models");
@@ -12,7 +13,7 @@ const { withTransaction } = require("../utils/helper");
 const { orders } = initModels(db);
 
 const confirmPaymentMember = async (data) => {
-  const product = await productRepository.getDataById(data.product_id);
+  const product = await productRepository.getDataById(1);
   if (!product) throw new ResponseError("Product not found", 404);
 
   const wallet = await walletRepository.getDataById(data.address_wallet_id);
@@ -35,13 +36,19 @@ const confirmPaymentMember = async (data) => {
     }
   }
 
-  const total = product.price * data.qty;
+  const rankActivation = await rankingRepository.getActivationReq();
+  let totalUSDT = rankActivation.ranking_reqs
+    ? rankActivation.ranking_reqs[0].value
+    : 100;
+
+  const totalORE = totalUSDT / product.price;
+  const total = product.price * totalORE;
 
   const orderDTO = {
     member_id: data.member_id,
     product_id: product.id,
     price: product.price,
-    qty: data.qty,
+    qty: totalORE,
     total_price: total,
     chain_trx_id: data.transaction_id,
     address: wallet.address,

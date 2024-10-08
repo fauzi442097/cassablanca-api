@@ -15,13 +15,13 @@ router.get(
 
 router.get(
   "/bonus/member/:bonusStatus",
-  authorize([ROLE.ADMIN_CASSABLANCA]),
+  authorize([ROLE.ADMIN_CONTINENTAL]),
   adminController.bonusMember
 );
 
 router.post(
   "/bonus/member/distribute",
-  authorize([ROLE.ADMIN_CASSABLANCA]),
+  authorize([ROLE.ADMIN_CONTINENTAL]),
   validateRequest(idMembersSchema),
   adminController.distributeBonus
 );

@@ -22,9 +22,7 @@ const getAll = async () => {
         as: "coin",
       },
     ],
-    order: [
-      ["id", "DESC"]
-    ]
+    order: [["id", "DESC"]],
   });
   return data;
 };
@@ -135,7 +133,7 @@ const getAddressRequestActivation = async () => {
   join reff_chain rc on
     rc.id = c.chain_id
   where
-    w.user_id = 0`);
+    w.user_id = 0 and w.wallet_type_id = 'deposit'`);
   return results;
 };
 
@@ -156,9 +154,7 @@ const getWalletAdminByType = async (type) => {
       user_id: 0,
       wallet_type_id: type,
     },
-    order: [
-      ["id", "DESC"]
-    ]
+    order: [["id", "DESC"]],
   });
 };
 

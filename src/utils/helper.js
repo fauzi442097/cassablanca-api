@@ -115,22 +115,13 @@ const buildTree = (members, parentId = null) => {
         attributes: {
           ranking: member.ranking_nm || "Silver",
           status: member.user_status_nm,
+          verified: member.email_verified,
         },
         children,
       });
     }
   }
   return tree;
-
-  // return members
-  //   .filter((member) => member.member_id_parent === parentId)
-  //   .map((member) => ({
-  //     id: member.id,
-  //     name: member.fullname,
-  //     photo: member.photo_url,
-  //     attributes: { ranking: member.ranking_nm },
-  //     children: buildTree(members, member.id),
-  //   }));
 };
 
 const setExpiredOTPInMinutes = (minutes = 15) => {

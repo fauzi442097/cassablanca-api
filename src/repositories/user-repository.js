@@ -59,6 +59,20 @@ const updateProfile = async (userId, data, transaction) => {
   });
 };
 
+const setVerified = async (userId, transaction) => {
+  return await users.update(
+    {
+      email_verified: true,
+    },
+    {
+      where: {
+        id: userId,
+      },
+    },
+    transaction
+  );
+};
+
 module.exports = {
   getDataByEmail,
   updateOTPByUserId,
@@ -66,4 +80,5 @@ module.exports = {
   getDataByOTP,
   getEmailAnotherUser,
   updateProfile,
+  setVerified,
 };

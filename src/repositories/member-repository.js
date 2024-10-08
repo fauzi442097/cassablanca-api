@@ -41,8 +41,6 @@ const getAll = async (param) => {
   let limitOffset;
   let whereClause = {};
 
-  console.log({ status });
-
   if (status && status != "") {
     whereClause.user_status_id = status;
   }
@@ -187,6 +185,7 @@ const getDataByMemberParentId = async (memberId, param) => {
         m.user_status_id,
         m.referal_code,
         m.member_id_parent,
+        m.email_verified,
         m2.fullname as parent,
         rus.user_status_nm
       from
@@ -203,6 +202,7 @@ const getDataByMemberParentId = async (memberId, param) => {
         m.user_status_id,
         m.referal_code,
         m.member_id_parent,
+        m.email_verified,
         m3.fullname as parent,
         rus.user_status_nm
       from
@@ -222,7 +222,7 @@ const getDataByMemberParentId = async (memberId, param) => {
   const replacements = {};
   replacements.member_id = memberId;
 
-  if (search != "") {
+  if (search && search != "") {
     query += " AND (d.fullname ilike :search OR d.email ilike :search)";
     replacements.search = `%${search}%`;
   }
@@ -254,6 +254,7 @@ const getTotalDownlineByMemberParentId = async (memberId) => {
         m.user_status_id,
         m.referal_code,
         m.member_id_parent,
+        m.email_verified,
         rus.user_status_nm
       from
         "member" m
@@ -269,6 +270,7 @@ const getTotalDownlineByMemberParentId = async (memberId) => {
         m.user_status_id,
         m.referal_code,
         m.member_id_parent,
+        m.email_verified,
         rus.user_status_nm
       from
         "member" m
@@ -529,6 +531,7 @@ const getDownlineMemberWithSelf = async (memberId) => {
         m.referal_code,
         m.member_id_parent,
         m.photo_url,
+        m.email_verified,
         rus.user_status_nm,
         r.ranking_nm,
         1 as level
@@ -547,6 +550,7 @@ const getDownlineMemberWithSelf = async (memberId) => {
         m.referal_code,
         m.member_id_parent,
         m.photo_url,
+        m.email_verified,
         rus.user_status_nm,
         r.ranking_nm,
         b.level + 1 as level
@@ -562,6 +566,7 @@ const getDownlineMemberWithSelf = async (memberId) => {
         d.email,
         d.user_status_id,
         d.referal_code,
+        d.email_verified,
         case
           when d.level = 1 then null
           else member_id_parent 
@@ -582,6 +587,16 @@ const getDownlineMemberWithSelf = async (memberId) => {
   return results;
 };
 
+const updateMember = async (memberId, data, transaction) => {
+  return await member.update(data, {
+    where: {
+      id: memberId,
+    },
+    returning: true,
+    transaction,
+  });
+};
+
 module.exports = {
   getDataByEmail,
   getDataByReferalCode,
@@ -600,4 +615,5 @@ module.exports = {
   getMemberDirectDownlineWithTotal,
   rekapMemberByStatus,
   getDownlineMemberWithSelf,
+  updateMember,
 };

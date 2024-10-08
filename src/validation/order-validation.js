@@ -1,4 +1,4 @@
-const { z } = require("zod");
+const { z, nullable } = require("zod");
 
 const confirmPaymentSchema = z.object({
   transaction_id: z
@@ -7,11 +7,17 @@ const confirmPaymentSchema = z.object({
     .max(255),
   address_wallet_id: z.number({ required_error: "Required" }).positive(),
   order_id: z.number().positive().nullable(),
-  product_id: z.number({ required_error: "Required" }).positive(),
-  qty: z.number({ required_error: "Required" }).positive(),
-  amount: z.number({ required_error: "Required" }).positive(),
+});
+
+const rejectConfirmPaymentSchema = z.object({
+  reason: z
+    .string({ required_error: "Required" })
+    .min(1, "Required")
+    .max(255)
+    .nullable(),
 });
 
 module.exports = {
   confirmPaymentSchema,
+  rejectConfirmPaymentSchema,
 };

@@ -3,10 +3,16 @@ const memberController = require("../controllers/member-controller");
 const orderController = require("../controllers/order-controller");
 
 const validateRequest = require("../middleware/validate-request");
-const { registerMemberSchema } = require("../validation/user-validation");
+const {
+  registerMemberSchema,
+  updateMemberSchema,
+} = require("../validation/user-validation");
 const authorize = require("../middleware/authorize");
 const { ROLE } = require("../utils/ref-value");
-const { confirmPaymentSchema } = require("../validation/order-validation");
+const {
+  confirmPaymentSchema,
+  rejectConfirmPaymentSchema,
+} = require("../validation/order-validation");
 const { withdrawalSchema } = require("../validation/member-validation");
 const {
   walletSchema,
@@ -34,6 +40,12 @@ router.get(
   "/",
   authorize([ROLE.ADMIN_CASSABLANCA, ROLE.ADMIN_CONTINENTAL]),
   memberController.getMembers
+);
+
+router.put(
+  "/:memberId",
+  validateRequest(updateMemberSchema),
+  memberController.updateMember
 );
 
 // WALLET
@@ -127,6 +139,7 @@ router.post(
 
 router.post(
   "/:memberId/reject-verification",
+  validateRequest(rejectConfirmPaymentSchema),
   authorize([ROLE.ADMIN_CONTINENTAL]),
   memberController.rejectVerificationMember
 );
