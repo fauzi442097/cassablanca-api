@@ -35,7 +35,7 @@ const requestOTPService = async (email) => {
   const otp = generateOtp();
 
   // send mail with defined transport object
-  await sendEmailOTP(otp, email);
+  await sendEmailOTP(otp, email, user.fullname);
 
   // Send the OTP email with sender email
   //   await sendOtpEmail(email, otp);
@@ -164,7 +164,7 @@ const registerMemberByReferalCode = async (data) => {
   };
 
   return withTransaction(async (transaction) => {
-    await sendEmailOTP(otp, data.email);
+    await sendEmailOTP(otp, data.email, data.full_name);
 
     const newMember = await memberRepository.store(newMemberData, transaction);
     await userBallanceRepository.createInitialBallanceMember(newMember.id);
@@ -182,18 +182,20 @@ const registerMemberByReferalCode = async (data) => {
   });
 };
 
-const sendEmailOTP = async (otp, email) => {
+const sendEmailOTP = async (otp, email, fullname) => {
   await transporter.sendMail({
     from: "Anonymous <jayden.gibson29@ethereal.email>", // sender address
     to: email, // list of receivers
-    subject: "Kode OTP untuk Verifikasi Login Anda", // Subject line
-    html: `<p> Halo Fauzi, </p>
-       <p> Kami menerima permintaan untuk login ke akun Anda. Untuk melanjutkan, silakan masukkan kode OTP berikut: </p>
-      <p> Kode OTP: </p>
-      <span style="display: inline-block; background: #ccc; padding: 4px; font-size: 1.2rem; color: #fff;"> ${otp} </span> <br/>
-      <p> Kode ini berlaku selama <b> 15 menit </b>. Mohon jangan bagikan kode ini kepada siapa pun. </p>
-      <p> Jika Anda tidak melakukan permintaan ini, silakan abaikan email ini.</p>
-      <p>Terima kasih</p>,`, // html body
+    subject: "Your OTP Code for Secure Login", // Subject line
+    html: `<p> Halo ${fullname}, </p>
+       <p> We received a request to log in to your account. To continue, please enter the following OTP code: </p>
+      <p> OTP Code: </p>
+      <span style="display: inline-block; background: #000; padding: 4px; font-size: 1.2rem; color: #fff;"> ${otp} </span> <br/>
+      <p> This code is valid for the next <b> 15 minutes </b>. Please do not share this code with anyone. </p>
+      <p> If you did not request this code, please ignore this email</p>
+      <p>Best regards</p>
+      <p>Admin</p>
+      `,
   });
 };
 

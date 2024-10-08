@@ -30,14 +30,22 @@ const withBonusStatusSchema = z.object({
 });
 
 const currencySchema = z.object({
-  id: z.string({ required_error: "Required" }).min(1, "Required").max(10),
+  currency_name: z
+    .string({ required_error: "Required" })
+    .min(1, "Required")
+    .max(10),
   min_withdrawal: z.number().int().positive().nullable(),
 });
 
 const chainSchema = z.object({
-  id: z.string({ required_error: "Required" }).min(1, "Required").max(10),
+  // id: z.string({ required_error: "Required" }).min(1, "Required").max(10),
   chain_nm: z.string({ required_error: "Required" }).min(1, "Required").max(30),
-  confirm_cnt: z.number({ required_error: "Required" }).min(0).max(100),
+  confirm_cnt: z
+    .number({ required_error: "Required" })
+    .min(0)
+    .max(100)
+    .nullable()
+    .optional(),
   logo: z
     .object({
       filename: z.string().min(1, "Filename is required.").nullable(),

@@ -5,16 +5,21 @@ const ResponseError = require("../utils/response-error");
 const jwt = require("jsonwebtoken");
 
 const { audits } = initModels(db);
-const userRepository = require("../repositories/user-repository");
-const { use } = require("../routes");
+const { Op } = require("sequelize");
 
-const getAll = async (page, size, search) => {
+const getAll = async (userLoginId, page, size, search) => {
   const offset = (page - 1) * size;
-  const whereCondition = search
-    ? {
-        [Op.or]: [{ event: { [Op.iLike]: `%${search}%` } }],
-      }
-    : {};
+  let whereCondition = {};
+
+  if (userLoginId) {
+    whereCondition.user_id = userLoginId;
+  }
+
+  if (search) {
+    whereCondition.event = {
+      [Op.iLike]: `%${search}%`,
+    };
+  }
 
   const result = await audits.findAndCountAll({
     where: whereCondition,

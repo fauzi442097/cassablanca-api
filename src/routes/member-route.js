@@ -132,13 +132,13 @@ router.get(
 );
 
 router.post(
-  "/:memberId/verification",
+  "/:orderId/verification",
   authorize([ROLE.ADMIN_CONTINENTAL]),
   memberController.verificationMember
 );
 
 router.post(
-  "/:memberId/reject-verification",
+  "/:orderId/reject-verification",
   validateRequest(rejectConfirmPaymentSchema),
   authorize([ROLE.ADMIN_CONTINENTAL]),
   memberController.rejectVerificationMember

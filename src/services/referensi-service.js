@@ -22,6 +22,14 @@ const getDataById = async (id, modelName) => {
       id: id,
     },
   });
+
+  if (modelName == "reff_curr") {
+    return {
+      ...data.dataValues,
+      currency_name: data.id,
+    };
+  }
+
   return data;
 };
 
@@ -103,7 +111,7 @@ const generateObjectData = async (data, refName, model, id = null) => {
   switch (refName) {
     case "ranking-req":
       id = helper.toSnakeCase(data.ranking_req_type_nm);
-      formData = { ...data };
+      formData = { id, ...data };
       break;
     case "user-status":
       id = id || (await helper.getNextId(model));
@@ -122,7 +130,10 @@ const generateObjectData = async (data, refName, model, id = null) => {
       formData = { id, ...data };
       break;
     case "currency":
-      formData = { id: helper.toSnakeCase(data.id).toUpperCase(), ...data };
+      formData = {
+        id: helper.toSnakeCase(data.currency_name).toUpperCase(),
+        min_withdrawal: data.min_withdrawal,
+      };
       break;
     case "chain": {
       let pathFile = null;
@@ -148,7 +159,12 @@ const generateObjectData = async (data, refName, model, id = null) => {
         );
       }
 
-      formData = { id: helper.toSnakeCase(data.id), ...data, logo: pathFile };
+      formData = {
+        id: helper.toSnakeCase(data.chain_nm),
+        chain_nm: data.chain_nm,
+        confirm_cnt: data.confirm_cnt,
+        logo: pathFile,
+      };
       break;
     }
     default:

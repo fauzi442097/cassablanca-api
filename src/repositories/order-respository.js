@@ -16,6 +16,10 @@ const getOrderPendingByMemberAndTrxId = async (memberId, transactionId) => {
   });
 };
 
+const getDataById = async (orderId, option) => {
+  return await orders.findByPk(orderId, option);
+};
+
 const getOrderPendingByMemberId = async (memberId) => {
   return await orders.findOne({
     where: {
@@ -161,6 +165,9 @@ const getAll = async (params) => {
   }
 
   const response = await orders[queryType]({
+    attributes: {
+      include: ["created_at"],
+    },
     include: [
       {
         model: product,
@@ -214,4 +221,5 @@ module.exports = {
   getHistoryOrder,
   getOrderPending,
   getAll,
+  getDataById,
 };

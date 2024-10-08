@@ -39,15 +39,15 @@ const listVerificationMember = tryCatch(async (req, res) => {
 });
 
 const verificationMember = tryCatch(async (req, res) => {
-  const { memberId } = req.params;
-  await memberService.verificationMember(memberId, req.user.id);
+  const { orderId } = req.params;
+  await memberService.verificationMember(orderId, req.user.id);
   return Response.Success(res, null, "Member activation success");
 });
 
 const rejectVerificationMember = tryCatch(async (req, res) => {
-  const { memberId } = req.params;
+  const { orderId } = req.params;
   const data = req.body;
-  await memberService.rejectVerificationMember(memberId, req.user.id, data);
+  await memberService.rejectVerificationMember(orderId, req.user.id, data);
   return Response.Success(res, null, "Data has been successfully rejected");
 });
 

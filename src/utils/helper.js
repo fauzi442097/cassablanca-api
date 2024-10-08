@@ -134,14 +134,14 @@ const sendEmailOTPWallet = async (otp, email) => {
   await transporter.sendMail({
     from: "Anonymous <jayden.gibson29@ethereal.email>", // sender address
     to: email, // list of receivers
-    subject: "Kode OTP untuk Verifikasi Wallet", // Subject line
-    html: `<p> Halo Fauzi, </p>
-       <p> Terima kasih telah melakukan permintaan untuk memperbarui, membuat atau menghapus dompet withdraw Anda. Untuk melanjutkan, silakan masukkan kode OTP berikut untuk verifikasi: </p>
-      <p> Kode OTP: </p>
-      <span style="display: inline-block; background: #ccc; padding: 4px; font-size: 1.2rem; color: #fff;"> ${otp} </span> <br/>
-      <p> Kode ini berlaku selama <b> 15 menit </b>. Mohon jangan bagikan kode ini kepada siapa pun. </p>
-      <p> Jika Anda tidak melakukan permintaan ini, silakan abaikan email ini.</p>
-      <p>Terima kasih</p>,`, // html body
+    subject: "OTP Code for Wallet Verification", // Subject line
+    html: `<p> Halo Admin, </p>
+       <p> Thank you for making a request to update, create or delete your withdraw wallet. To continue, please enter the following OTP code for verification: </p>
+      <p> OTP Code: </p>
+      <span style="display: inline-block; background: #000; padding: 4px; font-size: 1.2rem; color: #fff;"> ${otp} </span> <br/>
+      <p> This code is valid for the next <b> 15 minutes </b>. Please do not share this code with anyone. </p>
+      <p> If you did not request this code, please ignore this email</p>
+      `, // html body
   });
 };
 

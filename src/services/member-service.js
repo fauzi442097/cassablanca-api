@@ -25,8 +25,16 @@ const walletService = require("../services/wallet-service");
 
 const initModels = require("../models/init-models");
 const ResponseError = require("../utils/response-error");
-const { member, orders, ranking, ranking_req, withdrawal, wallet, reff_curr } =
-  initModels(db);
+const {
+  member,
+  orders,
+  ranking,
+  ranking_req,
+  withdrawal,
+  wallet,
+  reff_curr,
+  product,
+} = initModels(db);
 
 const activationRequestMember = async () => {
   const ranking = await rankingRepository.getActivationReq();
@@ -112,8 +120,8 @@ const getMembers = async (param) => {
   return result;
 };
 
-const verificationMember = async (memberId, userLoginId) => {
-  const memId = Number(memberId);
+const verificationMember = async (orderId, userLoginId) => {
+  const memId = Number(orderId);
   if (!Number.isInteger(memId) || memId <= 0) {
     throw new ResponseError(
       "Invalid Parameter. Parameter must be numeric",
@@ -121,7 +129,18 @@ const verificationMember = async (memberId, userLoginId) => {
     );
   }
 
-  const currentMember = await memberRepository.getDataById(memberId);
+  const orderPending = await orderRepository.getDataById(orderId, {
+    include: [
+      {
+        model: product,
+        as: "product",
+      },
+    ],
+  });
+
+  const currentMember = await memberRepository.getDataById(
+    orderPending.member_id
+  );
   if (!currentMember) throw new ResponseError("Data Member not found", 404);
 
   if (currentMember.user_status_id != STATUS_USER.INACTIVE)
@@ -130,14 +149,7 @@ const verificationMember = async (memberId, userLoginId) => {
       400
     );
 
-  if (!currentMember.member_id_parent) {
-    throw new ResponseError("Upline member not found", 400);
-  }
-
-  const orderPending = await orderRepository.getOrderPendingByMemberId(
-    memberId
-  );
-  if (!orderPending) {
+  if (orderPending.order_sts_id == "done") {
     throw new ResponseError("Member has already been verified", 400);
   }
 
@@ -155,7 +167,7 @@ const verificationMember = async (memberId, userLoginId) => {
 
     // Update level member activation to silver
     const memberUpdated = await memberRepository.updateStatusMember(
-      memberId,
+      currentMember.id,
       {
         ranking_id: "silver",
         user_status_id: STATUS_USER.ACTIVE,
@@ -363,8 +375,8 @@ const calculateComponentBonus = async (
   }
 };
 
-const rejectVerificationMember = async (memberId, userLoginId, data) => {
-  const memId = Number(memberId);
+const rejectVerificationMember = async (orderId, userLoginId, data) => {
+  const memId = Number(orderId);
   if (!Number.isInteger(memId) || memId <= 0) {
     throw new ResponseError(
       "Invalid Parameter. Parameter must be numeric",
@@ -372,7 +384,11 @@ const rejectVerificationMember = async (memberId, userLoginId, data) => {
     );
   }
 
-  const currentMember = await memberRepository.getDataById(memberId);
+  const orderPending = await orderRepository.getDataById(orderId);
+
+  const currentMember = await memberRepository.getDataById(
+    orderPending.member_id
+  );
   if (!currentMember) throw new ResponseError("Data Member not found", 404);
 
   if (currentMember.user_status_id != STATUS_USER.INACTIVE)
@@ -381,10 +397,7 @@ const rejectVerificationMember = async (memberId, userLoginId, data) => {
       400
     );
 
-  const orderPending = await orderRepository.getOrderPendingByMemberId(
-    memberId
-  );
-  if (!orderPending) {
+  if (orderPending.order_sts_id == "done") {
     throw new ResponseError("Member has already been verified", 400);
   }
 
