@@ -31,7 +31,7 @@ router.post(
 
 router.get(
   "/order/history-verification",
-  authorize([ROLE.ADMIN_CASSABLANCA]),
+  authorize([ROLE.ADMIN_CASSABLANCA, ROLE.ADMIN_CONTINENTAL]),
   adminController.historyVerification
 );
 

@@ -89,7 +89,24 @@ const getHistoryOrder = async (params) => {
     whereOrder.order_sts_id = params.status;
   }
 
+  if (params.start_date && params.end_date) {
+    if (params.start_date != "" && params.end_date != "") {
+      const startOfDay = new Date(params.start_date);
+      startOfDay.setHours(0, 0, 0, 0); // Start of the day
+
+      const endOfDay = new Date(params.end_date);
+      endOfDay.setHours(23, 59, 59, 999); // End of the day
+
+      whereOrder.created_at = {
+        [Op.between]: [startOfDay, endOfDay],
+      };
+    }
+  }
+
   const response = await orders[queryType]({
+    attributes: {
+      include: ["created_at"],
+    },
     include: [
       {
         model: product,
@@ -106,6 +123,10 @@ const getHistoryOrder = async (params) => {
         as: "member",
         attributes: ["email", "fullname"],
         where: whereClause,
+      },
+      {
+        model: reff_order_status,
+        as: "order_status",
       },
     ],
     where: whereOrder,
