@@ -28,7 +28,11 @@ const getAll = async (params) => {
   let queryType = "findAll";
 
   if (params && params.status) {
-    whereClause.withdrawal_status_id = "done";
+    whereClause.withdrawal_status_id = params.status;
+  } else {
+    whereClause.withdrawal_status_id = {
+      [Op.in]: ["rejected", "new"],
+    };
   }
 
   if (params && params.page && params.size) {

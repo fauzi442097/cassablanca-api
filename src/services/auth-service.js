@@ -158,6 +158,7 @@ const registerMemberByReferalCode = async (data) => {
     fullname: data.full_name,
     role_id: ROLE.MEMBER,
     referal_code: referralCode,
+    member_id_parent: memberByRefCode.id,
     user_status_id: STATUS_USER.INACTIVE,
     otp: otp,
     expired_otp: expiredOTP,

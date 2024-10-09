@@ -22,6 +22,13 @@ const updateProduct = async (productId, data) => {
   const productExisting = await productRepository.getDataById(productId);
   if (!productExisting) throw new ResponseError("Data not found", 404);
 
+  const total = data.sharing_pct_usdt + data.sharing_pct_product;
+  if (total != 100)
+    throw new ResponseError(
+      "The sum of the percentages sharing usdt and sharing product must be 100",
+      404
+    );
+
   const ProductDTO = { ...data, price: data.price };
   return withTransaction(async (transaction) => {
     const productCreated = await productRepository.update(
@@ -52,6 +59,13 @@ const storeProduct = async (data) => {
 
   const dataExisting = await productRepository.getDataByCurrId(data.curr_id);
   if (dataExisting) throw new ResponseError(`Data already exists`, 401);
+
+  const total = data.sharing_pct_usdt + data.sharing_pct_product;
+  if (total != 100)
+    throw new ResponseError(
+      "The sum of the percentages sharing usdt and sharing product must be 100",
+      404
+    );
 
   const ProductDTO = { ...data, price: data.price };
   return withTransaction(async (transaction) => {

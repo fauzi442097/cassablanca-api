@@ -25,6 +25,7 @@ const getAll = async (userLoginId, page, size, search) => {
     where: whereCondition,
     limit: size,
     offset: offset,
+    order: [["id", "DESC"]],
   });
 
   const dataPagination = {

@@ -97,14 +97,23 @@ const getAllWithdrawalMember = async (queryParams) => {
   return await withdrawalRepository.getAll(queryParams);
 };
 
-const rejectWithdrawalMember = async (withdrawalId, userLoginId) => {
+const rejectWithdrawalMember = async (withdrawalId, userLoginId, data) => {
   const witdrawalMember = await withdrawalRepository.getDataById(withdrawalId);
   if (!witdrawalMember) throw new ResponseError("Data not found", 404);
 
+  if (witdrawalMember.withdrawal_status_id == "new") {
+    throw new ResponseError("Withdrawal has already been approved", 400);
+  }
+
+  const dataReject = {
+    order_sts_id: "rejected",
+    reject_reason: data.reason,
+  };
+
   return withTransaction(async (transaction) => {
-    const dataUpdated = await withdrawalRepository.updateStatusWithdrawal(
+    const dataUpdated = await withdrawalRepository.updateWithdrawal(
       withdrawalId,
-      "rejected",
+      dataReject,
       transaction
     );
 

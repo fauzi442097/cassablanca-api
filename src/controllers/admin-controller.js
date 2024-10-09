@@ -36,7 +36,8 @@ const withdrawalMember = async (req, res) => {
 
 const rejectWithdrawal = tryCatch(async (req, res) => {
   const { withdrawalId } = req.params;
-  await adminService.rejectWithdrawalMember(withdrawalId, req.user.id);
+  const data = req.body;
+  await adminService.rejectWithdrawalMember(withdrawalId, req.user.id, data);
   return Response.Success(res, null, "Data has been successfully rejected");
 });
 

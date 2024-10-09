@@ -6,6 +6,9 @@ const authorize = require("../middleware/authorize");
 const { ROLE } = require("../utils/ref-value");
 const validateRequest = require("../middleware/validate-request");
 const { idMembersSchema } = require("../validation/member-validation");
+const {
+  rejectWithdrawalSchema,
+} = require("../validation/withdrawal-validation");
 
 router.get(
   "/wallet",
@@ -39,6 +42,7 @@ router.get(
 );
 router.post(
   "/withdrawal/:withdrawalId/reject",
+  validateRequest(rejectWithdrawalSchema),
   authorize([ROLE.ADMIN_CONTINENTAL]),
   adminController.rejectWithdrawal
 );
