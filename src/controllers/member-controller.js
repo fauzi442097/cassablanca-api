@@ -13,10 +13,7 @@ const getMembers = async (req, res) => {
 
 const getDownlineMember = async (req, res) => {
   const { memberId } = req.params;
-  const { page, size, search } = req.query;
-
-  const dataParam = { page, size, search };
-  const data = await memberService.getDownlineMember(memberId, dataParam);
+  const data = await memberService.getDownlineMember(memberId, req.query);
   return Response.Success(res, data);
 };
 
@@ -185,6 +182,11 @@ const updateMember = tryCatch(async (req, res) => {
   return Response.Success(res, null, "Data has been updated successfully");
 });
 
+const getRekapMember = async (req, res) => {
+  const data = await memberService.getRekapMember(req);
+  return Response.Success(res, data);
+};
+
 module.exports = {
   activationRequest,
   registerMember,
@@ -208,4 +210,5 @@ module.exports = {
   listVerificationMember,
   unBlockMember,
   updateMember,
+  getRekapMember,
 };

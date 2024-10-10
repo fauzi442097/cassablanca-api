@@ -113,6 +113,37 @@ const getHistoryTrxByUserId = async (userId, params) => {
   return result;
 };
 
+const getRecentTransactionDownline = async (arrUserId, option) => {
+  const data = await users_balance_trx.findAll({
+    attributes: {
+      include: [
+        "created_at",
+        [
+          sequelize.fn("TO_CHAR", sequelize.col("created_at"), "Mon DD, YYYY"),
+          "trx_date",
+        ],
+        [
+          sequelize.fn("TO_CHAR", sequelize.col("created_at"), "HH24:MI"),
+          "trx_time",
+        ],
+      ],
+    },
+    where: {
+      user_id: {
+        [Op.in]: [...arrUserId],
+      },
+    },
+    order: [["id", "DESC"]],
+    ...option,
+  });
+
+  return data;
+};
+
+const getTotalTransaction = async (option) => {
+  return await users_balance_trx.count(option);
+};
+
 module.exports = {
   storeBallance,
   getBallanceUSDT,
@@ -120,4 +151,6 @@ module.exports = {
   createInitialBallanceMember,
   getDataByUserId,
   getHistoryTrxByUserId,
+  getRecentTransactionDownline,
+  getTotalTransaction,
 };

@@ -167,4 +167,10 @@ router.get(
   memberController.historyTransactionBalance
 );
 
+router.get(
+  "/rekap",
+  authorize([ROLE.MEMBER, ROLE.ADMIN_CASSABLANCA, ROLE.ADMIN_CONTINENTAL]),
+  memberController.getRekapMember
+);
+
 module.exports = router;

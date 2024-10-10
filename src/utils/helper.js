@@ -145,6 +145,35 @@ const sendEmailOTPWallet = async (otp, email) => {
   });
 };
 
+const getThisMonth = () => {
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1); // Set to the first day of the current month
+
+  const endOfMonth = new Date();
+  endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+  endOfMonth.setDate(1);
+
+  return {
+    startDate: startOfMonth,
+    endDate: endOfMonth,
+  };
+};
+
+const getLastMonth = () => {
+  const startOfLastMonth = new Date();
+  startOfLastMonth.setMonth(startOfLastMonth.getMonth() - 1);
+  startOfLastMonth.setDate(1);
+
+  const endOfLastMonth = new Date();
+  endOfLastMonth.setMonth(endOfLastMonth.getMonth());
+  endOfLastMonth.setDate(1);
+
+  return {
+    startDate: startOfLastMonth,
+    endDate: endOfLastMonth,
+  };
+};
+
 module.exports = {
   generateOtp,
   tryCatch,
@@ -158,4 +187,6 @@ module.exports = {
   buildTree,
   setExpiredOTPInMinutes,
   sendEmailOTPWallet,
+  getThisMonth,
+  getLastMonth,
 };

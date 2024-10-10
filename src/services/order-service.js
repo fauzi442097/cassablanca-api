@@ -4,11 +4,13 @@ const productRepository = require("../repositories/product-repository");
 const walletRepository = require("../repositories/wallet-repository");
 const orderRepository = require("../repositories/order-respository");
 const rankingRepository = require("../repositories/ranking-repository");
+const memberRepository = require("../repositories/member-repository");
 
 const auditService = require("../services/audit-service");
 const initModels = require("../models/init-models");
 const db = require("../config/database");
 const { withTransaction } = require("../utils/helper");
+const { STATUS_USER } = require("../utils/ref-value");
 
 const { orders } = initModels(db);
 
@@ -18,6 +20,14 @@ const confirmPaymentMember = async (data) => {
 
   const wallet = await walletRepository.getDataById(data.address_wallet_id);
   if (!wallet) throw new ResponseError("Address wallet not found", 404);
+
+  const member = await memberRepository.getDataById(data.member_id);
+  if (member.user_status_id == STATUS_USER.ACTIVE) {
+    throw new ResponseError(
+      "Activation request failed. Your account is already active",
+      401
+    );
+  }
 
   let order;
   if (!data.order_id) {

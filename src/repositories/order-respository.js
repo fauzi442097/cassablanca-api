@@ -153,14 +153,16 @@ const getOrderPending = async (option) => {
   const data = await orders.findAll({
     include: [
       {
-        attributes: ["email", "fullname", "member_id_parent"],
+        attributes: ["email", "fullname", "member_id_parent", "photo_url"],
         model: member,
         as: "member",
-      },
-      {
-        model: product,
-        as: "product",
-        attributes: ["curr_id", "price"],
+        include: [
+          {
+            attributes: ["email", "fullname", "member_id_parent", "photo_url"],
+            model: member,
+            as: "parent",
+          },
+        ],
       },
     ],
     where: {
@@ -242,6 +244,67 @@ const getAll = async (params) => {
   return response;
 };
 
+const getOrderByStatus = async (status, option) => {
+  const data = await orders.findAll({
+    include: [
+      {
+        attributes: ["email", "fullname", "member_id_parent", "photo_url"],
+        model: member,
+        as: "member",
+        include: [
+          {
+            attributes: ["email", "fullname", "member_id_parent", "photo_url"],
+            model: member,
+            as: "parent",
+          },
+        ],
+      },
+    ],
+    where: {
+      order_sts_id: {
+        [Op.in]: [...status],
+      },
+    },
+    order: [["id", "DESC"]],
+    ...option,
+  });
+
+  return data;
+};
+
+const getTotalActivationMember = async (option) => {
+  return await orders.count(option);
+};
+
+const getRecentActivationDownline = async (arrMemberId, option) => {
+  const data = await orders.findAll({
+    include: [
+      {
+        attributes: ["email", "fullname", "member_id_parent", "photo_url"],
+        model: member,
+        as: "member",
+        include: [
+          {
+            attributes: ["email", "fullname", "member_id_parent", "photo_url"],
+            model: member,
+            as: "parent",
+          },
+        ],
+      },
+    ],
+    where: {
+      order_sts_id: "done",
+      member_id: {
+        [Op.in]: [...arrMemberId],
+      },
+    },
+    order: [["id", "DESC"]],
+    ...option,
+  });
+
+  return data;
+};
+
 module.exports = {
   store,
   getOrderPendingByMemberAndTrxId,
@@ -252,4 +315,7 @@ module.exports = {
   getOrderPending,
   getAll,
   getDataById,
+  getOrderByStatus,
+  getTotalActivationMember,
+  getRecentActivationDownline,
 };

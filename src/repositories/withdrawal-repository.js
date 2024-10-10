@@ -186,6 +186,29 @@ const getWithdrawalPending = async (option) => {
   });
 };
 
+const getWithdrawalByStatus = async (status, option) => {
+  return await withdrawal.findAll({
+    include: [
+      {
+        attributes: ["email", "fullname"],
+        model: users,
+        as: "member",
+      },
+    ],
+    where: {
+      withdrawal_status_id: {
+        [Op.in]: [...status],
+      },
+    },
+    order: [["id", "DESC"]],
+    ...option,
+  });
+};
+
+const getTotalWithdrawalMember = async (option) => {
+  return await withdrawal.count(option);
+};
+
 module.exports = {
   store,
   getDataByUserIdAndStatus,
@@ -195,4 +218,6 @@ module.exports = {
   getDataByUserId,
   updateWithdrawal,
   getWithdrawalPending,
+  getWithdrawalByStatus,
+  getTotalWithdrawalMember,
 };

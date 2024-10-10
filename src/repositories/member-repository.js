@@ -2,6 +2,7 @@ const { Op } = require("sequelize");
 const db = require("../config/database");
 const initModels = require("../models/init-models");
 const sequelize = require("sequelize");
+const { getLastMonth, getThisMonth } = require("../utils/helper");
 
 const { member, reff_user_status, ranking, bonus } = initModels(db);
 
@@ -36,13 +37,21 @@ const getAllWithoutPaging = async (parentId) => {
 };
 
 const getAll = async (param) => {
-  const { page, size, status, search } = param;
+  const { page, size, status, search, rank } = param;
   let offset;
   let limitOffset;
   let whereClause = {};
 
   if (status && status != "") {
-    whereClause.user_status_id = status;
+    whereClause.user_status_id = {
+      [Op.in]: status.split(","),
+    };
+  }
+
+  if (rank && rank != "") {
+    whereClause.ranking_id = {
+      [Op.in]: rank.split(","),
+    };
   }
 
   if (param.type && param.type == "genesis") {
@@ -73,6 +82,25 @@ const getAll = async (param) => {
     const result = await member.findAndCountAll({
       attributes: {
         exclude: ["password", "wrong_password_cnt", "otp", "expired_otp"],
+        include: [
+          "created_at",
+          [
+            sequelize.fn(
+              "TO_CHAR",
+              sequelize.col("member.created_at"),
+              "Mon DD, YYYY"
+            ),
+            "date_joined",
+          ],
+          [
+            sequelize.fn(
+              "TO_CHAR",
+              sequelize.col("member.created_at"),
+              "HH24:MI"
+            ),
+            "time_joined",
+          ],
+        ],
       },
       where: whereClause || undefined,
       ...limitOffset,
@@ -87,7 +115,7 @@ const getAll = async (param) => {
           as: "ranking",
         },
         {
-          attributes: ["email", "fullname"],
+          attributes: ["email", "fullname", "ranking_id", "photo_url"],
           model: member,
           as: "parent",
         },
@@ -163,6 +191,8 @@ const store = async (data, transaction) => {
 const getDataByMemberParentId = async (memberId, param) => {
   let page = null;
   let size = null;
+  let status = null;
+  let rank = null;
   let search = "";
   let offset = "";
 
@@ -170,6 +200,8 @@ const getDataByMemberParentId = async (memberId, param) => {
     page = param.page;
     size = param.size;
     search = param.search;
+    status = param.status;
+    rank = param.rank;
   }
 
   if (page && size) {
@@ -177,54 +209,96 @@ const getDataByMemberParentId = async (memberId, param) => {
   }
 
   let query = `
-    with recursive downline as (
+  with recursive downline as (
+    select
+      m.id,
+      m.fullname,
+      m.email,
+      m.user_status_id,
+      m.referal_code,
+      m.member_id_parent,
+      m.email_verified,
+      m.photo_url,
+      m.created_at,
+      m.ranking_id
+    from
+      "member" m
+    left join member m2 on
+      m2.id = m.member_id_parent
+    where
+      m.id = :member_id
+    union
+    select
+      m.id,
+      m.fullname,
+      m.email,
+      m.user_status_id,
+      m.referal_code,
+      m.member_id_parent,
+      m.email_verified,
+      m.photo_url,
+      m.created_at,
+      m.ranking_id
+    from
+      "member" m
+    join downline b on
+      m.member_id_parent = b.id
+                )
       select
-        m.id,
-        m.fullname,
-        m.email,
-        m.user_status_id,
-        m.referal_code,
-        m.member_id_parent,
-        m.email_verified,
-        m2.fullname as parent,
-        rus.user_status_nm
-      from
-        "member" m
-      join reff_user_status rus on rus.id = m.user_status_id
-      left join member m2 on m2.id = m.member_id_parent
-      where
-        m.id = :member_id
-      union
-      select
-        m.id,
-        m.fullname,
-        m.email,
-        m.user_status_id,
-        m.referal_code,
-        m.member_id_parent,
-        m.email_verified,
-        m3.fullname as parent,
-        rus.user_status_nm
-      from
-        "member" m
-      join reff_user_status rus on rus.id = m.user_status_id
-      join downline b on m.member_id_parent = b.id
-      left join member m3 on m3.id = m.member_id_parent
-            )
-      select
-        *
-      from
-        downline d
-      where 
-        d.id != :member_id
+      d.id,
+      d.fullname,
+      d.email,
+      d.user_status_id,
+      rus.user_status_nm,
+      d.referal_code,
+      d.member_id_parent,
+      d.photo_url,
+      d.created_at,
+      TO_CHAR(d.created_at, 'Mon DD, YYYY') as date_joined,
+      TO_CHAR(d.created_at, 'HH24:MI') as time_joined,
+      d.ranking_id,
+      r.ranking_nm,
+      o.paid_at,
+      TO_CHAR(o.paid_at, 'Mon DD, YYYY') as date_activated,
+      TO_CHAR(o.paid_at, 'HH24:MI') as time_activated,
+      m2.fullname as upline,
+      m2.email as upline_email,
+      m2.photo_url  as upline_photo_url,
+      m2.ranking_id as upline_ranking_id,
+      r2.ranking_nm as upline_ranking
+    from
+      downline d
+    left join member m2 on
+      d.member_id_parent = m2.id
+    left join reff_user_status rus on rus.id = d.user_status_id
+    left join orders o on o.member_id = m2.id 
+    left join ranking r on r.id = d.ranking_id
+    left join ranking r2 on r2.id = m2.ranking_id 
+    where
+      d.id != :member_id
   `;
 
   const replacements = {};
   replacements.member_id = memberId;
 
-  if (search && search != "") {
+  const hasSearchFilter = search && search != "";
+  if (hasSearchFilter) {
     query += " AND (d.fullname ilike :search OR d.email ilike :search)";
     replacements.search = `%${search}%`;
+  }
+
+  const hasStatusFilter = status && status != "";
+  if (hasStatusFilter) {
+    const arrStatus = status.split(",");
+    query += `AND (d.user_status_id IN (:status))`;
+    replacements.status = arrStatus;
+  }
+
+  const hasRankFilter = rank && rank != "";
+  if (hasRankFilter) {
+    const arrRanking = rank.split(",");
+    query += `AND (d.ranking_id IN (:ranking))`;
+    replacements.ranking = arrRanking;
   }
 
   if (page) {
@@ -597,6 +671,106 @@ const updateMember = async (memberId, data, transaction) => {
   });
 };
 
+const getRekapMemberByParentId = async (memberId) => {
+  const countQuery = `
+    with recursive downline as (
+      select
+        m.id,
+        m.fullname,
+        m.email,
+        m.user_status_id,
+        m.referal_code,
+        m.member_id_parent,
+        m.email_verified,
+        rus.user_status_nm
+      from
+        "member" m
+      join reff_user_status rus on
+        rus.id = m.user_status_id
+      where
+        m.id = :member_id
+      union
+      select
+        m.id,
+        m.fullname,
+        m.email,
+        m.user_status_id,
+        m.referal_code,
+        m.member_id_parent,
+        m.email_verified,
+        rus.user_status_nm
+      from
+        "member" m
+      join reff_user_status rus on
+        rus.id = m.user_status_id
+      join downline b on
+        m.member_id_parent = b.id
+            )
+      select
+        sum(case when d.user_status_id = 1 then 1 else 0 end) as activated_member,
+        sum(case when d.user_status_id = 2 then 1 else 0 end) as blocked_member,
+        sum(case when d.user_status_id = 3 then 1 else 0 end) as inactivated_member,
+        count(d.id) as total
+      from
+        downline d
+      where
+        d.id != :member_id
+  `;
+
+  const [[response]] = await db.query(countQuery, {
+    replacements: { member_id: memberId },
+  });
+
+  return response;
+};
+
+const getRekapAllMember = async () => {
+  const countQuery = `
+      select
+        sum(case when d.user_status_id = 1 then 1 else 0 end) as activated_member,
+        sum(case when d.user_status_id = 2 then 1 else 0 end) as blocked_member,
+        sum(case when d.user_status_id = 3 then 1 else 0 end) as inactivated_member,
+        count(d.id) as total
+      from
+        member d
+  `;
+
+  const [[response]] = await db.query(countQuery);
+  return response;
+};
+
+const getRekapMemberGrowthByStatus = async (status) => {
+  const { startDate: startDateLastMonth, endDate: endDateLastMonth } =
+    getLastMonth();
+  const memberCountLastMonth = await member.count({
+    where: {
+      created_at: {
+        [Op.between]: [startDateLastMonth, endDateLastMonth],
+      },
+      user_status_id: status,
+    },
+  });
+
+  const { startDate, endDate } = getThisMonth();
+  const memberCountThisMonth = await member.count({
+    where: {
+      created_at: {
+        [Op.between]: [startDate, endDate],
+      },
+      user_status_id: status,
+    },
+  });
+
+  // Hitung pertumbuhan persentase
+  const growthPercentage =
+    memberCountLastMonth > 0
+      ? ((memberCountThisMonth - memberCountLastMonth) / memberCountLastMonth) *
+        100
+      : 100; // Jika bulan lalu tidak ada anggota, bisa anggap pertumbuhan 100%
+
+  return growthPercentage;
+};
+
 module.exports = {
   getDataByEmail,
   getDataByReferalCode,
@@ -616,4 +790,7 @@ module.exports = {
   rekapMemberByStatus,
   getDownlineMemberWithSelf,
   updateMember,
+  getRekapMemberByParentId,
+  getRekapAllMember,
+  getRekapMemberGrowthByStatus,
 };

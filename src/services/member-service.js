@@ -96,9 +96,7 @@ const registerMember = async (data, userId) => {
 const getDownlineMember = async (memberId, param) => {
   const { page, size, search } = param;
   let result;
-
   result = await memberRepository.getDataByMemberParentId(memberId, param);
-
   if (page && size) {
     const totalMember = await memberRepository.getTotalDownlineByMemberParentId(
       memberId
@@ -180,7 +178,7 @@ const verificationMember = async (orderId, userLoginId) => {
       curr_id: "ORE",
       amount: orderPending.qty,
       dbcr: 1,
-      description: "Kredit saldo ORE",
+      description: "activation",
     };
 
     // Add ORE Ballance
@@ -222,6 +220,8 @@ const calculateBonus = async (memberIdParent, order, transaction) => {
       },
     ],
   });
+
+  console.log(parentMember);
 
   const rankingParent = parentMember.ranking;
   if (!rankingParent) throw new ResponseError("Upline ranking is emtpy", 400);
@@ -295,19 +295,9 @@ const calculateBonus = async (memberIdParent, order, transaction) => {
 
   // ASSING MEMBER ID PARENT TO ORDER
   order.member_id_parent = parentMember.id;
-  await calculateComponentBonus("directBonus", order, directBonus, transaction);
-  await calculateComponentBonus(
-    "rankingBonus",
-    order,
-    rankingBonus,
-    transaction
-  );
-  await calculateComponentBonus(
-    "globalSharing",
-    order,
-    globalBonus,
-    transaction
-  );
+  await calculateComponentBonus("direct", order, directBonus, transaction);
+  await calculateComponentBonus("ranking", order, rankingBonus, transaction);
+  await calculateComponentBonus("global", order, globalBonus, transaction);
 
   if (parentMember.member_id_parent) {
     await calculateBonus(parentMember.member_id_parent, order, transaction);
@@ -331,43 +321,46 @@ const calculateComponentBonus = async (
     const totalUSDT = (t * sharingPctUSDT) / 100;
     const totalORE = (t * sharingPctProduct) / 100 / product.price;
 
+    const bonusStatus = bonusType == "global" ? "unrealized" : "realized";
+    const realizedAt = bonusType != "global" && new Date();
+
     const DTOBonus = [
       {
         member_id: order.member_id_parent,
         curr_id: "USDT",
         amount: totalUSDT,
         order_id: order.id,
-        bonus_status_id:
-          bonusType == "globalSharing" ? "unrealized" : "realized",
-        realized_at: bonusType != "globalSharing" && new Date(),
+        bonus_status_id: bonusStatus,
+        realized_at: realizedAt,
+        bonus_type_id: bonusType,
       },
       {
         member_id: order.member_id_parent,
         curr_id: "ORE",
         amount: totalORE,
         order_id: order.id,
-        bonus_status_id:
-          bonusType == "globalSharing" ? "unrealized" : "realized",
-        realized_at: bonusType != "globalSharing" && new Date(),
+        bonus_status_id: bonusStatus,
+        realized_at: realizedAt,
+        bonus_type_id: bonusType,
       },
     ];
     await bonusRepository.storeBonusUpline(DTOBonus, transaction);
 
-    if (bonusType != "globalSharing") {
+    if (bonusType != "global") {
       const ballanceDTO = [
         {
           user_id: order.member_id_parent,
           curr_id: "ORE",
           amount: totalORE,
           dbcr: 1,
-          description: "Kredit saldo ORE",
+          description: bonusType,
         },
         {
           user_id: order.member_id_parent,
           curr_id: "USDT",
           amount: totalUSDT,
           dbcr: 1,
-          description: "Kredit saldo USDT",
+          description: bonusType,
         },
       ];
       await userBallanceRepository.storeBulkBallance(ballanceDTO, transaction);
@@ -587,7 +580,7 @@ const createWallet = async (data, userLogin) => {
   if (currentWallet) throw new ResponseError("Wallet already exists", 400);
 
   const otp = generateOtp();
-  const expiredOTP = setExpiredOTPInMinutes(15);
+  const expiredOTP = setExpiredOTPInMinutes(5);
 
   const member = await memberRepository.getDataById(userId);
   await sendEmailOTPWallet(otp, member.email);
@@ -643,7 +636,7 @@ const updateWallet = async (data, userLogin) => {
   }
 
   const otp = generateOtp();
-  const expiredOTP = setExpiredOTPInMinutes(15);
+  const expiredOTP = setExpiredOTPInMinutes(5);
 
   const member = await memberRepository.getDataById(userLogin.id);
   await sendEmailOTPWallet(otp, member.email);
@@ -733,7 +726,7 @@ const resendOTPWallet = async (data, emailUserLogin, userLoginId) => {
   if (!currentWallet) throw new ResponseError("Wallet not found", 400);
 
   const otp = generateOtp();
-  const expiredOTP = setExpiredOTPInMinutes(15);
+  const expiredOTP = setExpiredOTPInMinutes(5);
 
   await sendEmailOTPWallet(otp, emailUserLogin);
 
@@ -858,6 +851,31 @@ const updateMember = async (memberId, data, userIdLogin) => {
   });
 };
 
+const getRekapMember = async (req) => {
+  const userId = req.user.id;
+  const roleId = req.user.role_id;
+  let rekapMember;
+
+  if (roleId == ROLE.MEMBER) {
+    rekapMember = await memberRepository.getRekapMemberByParentId(userId);
+  } else {
+    rekapMember = await memberRepository.getRekapAllMember();
+  }
+
+  return {
+    activated_member: {
+      total: parseFloat(rekapMember.activated_member),
+    },
+    inactivated_member: {
+      total: parseFloat(rekapMember.inactivated_member),
+    },
+    blocked_member: {
+      total: parseFloat(rekapMember.blocked_member),
+    },
+    total: parseFloat(rekapMember.total),
+  };
+};
+
 module.exports = {
   activationRequestMember,
   registerMember,
@@ -880,4 +898,5 @@ module.exports = {
   getHistoryWithdrawal,
   unBlockMember,
   updateMember,
+  getRekapMember,
 };

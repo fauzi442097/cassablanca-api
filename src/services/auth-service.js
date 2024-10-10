@@ -3,6 +3,7 @@ const {
   generateOtp,
   withTransaction,
   generateReferralCode,
+  setExpiredOTPInMinutes,
 } = require("../utils/helper");
 const jwt = require("jsonwebtoken");
 const ResponseError = require("../utils/response-error");
@@ -40,8 +41,7 @@ const requestOTPService = async (email) => {
   // Send the OTP email with sender email
   //   await sendOtpEmail(email, otp);
 
-  const currentDate = new Date(); // Current date and time
-  const expiredOTP = new Date(currentDate.getTime() + 15 * 60000);
+  const expiredOTP = setExpiredOTPInMinutes(5);
 
   // Log Audit
   const dataAudit = {

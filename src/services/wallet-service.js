@@ -49,7 +49,7 @@ const updateWallet = async (walletId, data) => {
   }
 
   const otp = generateOtp();
-  const expiredOTP = setExpiredOTPInMinutes(15);
+  const expiredOTP = setExpiredOTPInMinutes(5);
   await sendEmailOTPWallet(otp, data.user_email_login);
 
   const walletDTO = {
@@ -95,7 +95,7 @@ const storeWallet = async (data) => {
   if (dataExisting) throw new ResponseError("Wallet already exists", 400);
 
   const otp = generateOtp();
-  const expiredOTP = setExpiredOTPInMinutes(15);
+  const expiredOTP = setExpiredOTPInMinutes(5);
 
   await sendEmailOTPWallet(otp, data.user_email_login);
 
