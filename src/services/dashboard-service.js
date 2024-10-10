@@ -12,8 +12,10 @@ const getDashboardMember = async (req) => {
   const userId = req.user.id;
 
   const balance = await userBallanceRepository.getDataByUserId(userId);
-  const balanceORE = balance.find((item) => item.curr_id == "ORE");
-  const balanceUSDT = balance.find((item) => item.curr_id == "USDT");
+  const balanceORE =
+    balance.find((item) => item.curr_id == "ORE")?.balance || 0;
+  const balanceUSDT =
+    balance.find((item) => item.curr_id == "USDT")?.balance || 0;
 
   const member = await memberRepository.getDataById(userId, {
     include: [{ model: ranking, as: "ranking" }],
@@ -50,11 +52,38 @@ const getDashboardMember = async (req) => {
 const getDashboardAdmin = async (req) => {
   const rekapMemberbyStatus = await memberRepository.rekapMemberByStatus();
 
-  const requestActivation = await orderRepository.getOrderPending();
-  const requestWithdrawal = await withdrawalRepository.getWithdrawalPending();
+  let totalMember = 0;
+  const groupedMember = rekapMemberbyStatus.reduce(
+    (acc, { user_status_nm, total }) => {
+      acc[user_status_nm.toLowerCase()] = parseFloat(total);
+      totalMember += parseFloat(total);
+      return acc;
+    },
+    {}
+  );
+
+  const balance = await userBallanceRepository.getDataByUserId(0);
+  const balanceORE =
+    balance.find((item) => item.curr_id == "ORE")?.balance || 0;
+  const balanceUSDT =
+    balance.find((item) => item.curr_id == "USDT")?.balance || 0;
+
+  const requestActivation = await orderRepository.getOrderPending({
+    limit: 5,
+  });
+  const requestWithdrawal = await withdrawalRepository.getWithdrawalPending({
+    limit: 5,
+  });
 
   const dataResponse = {
-    rekap_member: rekapMemberbyStatus,
+    balance: {
+      ore: balanceORE,
+      usdt: balanceUSDT,
+    },
+    rekap_member: {
+      total: totalMember,
+      ...groupedMember,
+    },
     request_activation: requestActivation,
     request_withdrawal: requestWithdrawal,
   };

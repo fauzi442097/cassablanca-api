@@ -149,7 +149,7 @@ const getHistoryOrder = async (params) => {
   return response;
 };
 
-const getOrderPending = async () => {
+const getOrderPending = async (option) => {
   const data = await orders.findAll({
     include: [
       {
@@ -167,6 +167,7 @@ const getOrderPending = async () => {
       order_sts_id: "waiting_approve",
     },
     order: [["id", "DESC"]],
+    ...option,
   });
 
   return data;

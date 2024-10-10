@@ -168,7 +168,7 @@ const updateWithdrawal = async (id, data, transaction) => {
   });
 };
 
-const getWithdrawalPending = async () => {
+const getWithdrawalPending = async (option) => {
   return await withdrawal.findAll({
     include: [
       {
@@ -182,6 +182,7 @@ const getWithdrawalPending = async () => {
         [Op.in]: ["new", "waiting_approve"],
       },
     },
+    ...option,
   });
 };
 
