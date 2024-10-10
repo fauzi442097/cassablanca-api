@@ -62,11 +62,11 @@ const getDashboardAdmin = async (req) => {
     {}
   );
 
-  const balance = await userBallanceRepository.getDataByUserId(0);
-  const balanceORE =
-    balance.find((item) => item.curr_id == "ORE")?.balance || 0;
-  const balanceUSDT =
-    balance.find((item) => item.curr_id == "USDT")?.balance || 0;
+  // const balance = await userBallanceRepository.getDataByUserId(0);
+  // const balanceORE =
+  //   balance.find((item) => item.curr_id == "ORE")?.balance || 0;
+  // const balanceUSDT =
+  //   balance.find((item) => item.curr_id == "USDT")?.balance || 0;
 
   const requestActivation = await orderRepository.getOrderPending({
     limit: 5,
@@ -76,10 +76,10 @@ const getDashboardAdmin = async (req) => {
   });
 
   const dataResponse = {
-    balance: {
-      ore: balanceORE,
-      usdt: balanceUSDT,
-    },
+    // balance: {
+    //   ore: balanceORE,
+    //   usdt: balanceUSDT,
+    // },
     rekap_member: {
       total: totalMember,
       ...groupedMember,
